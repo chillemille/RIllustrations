@@ -2,7 +2,15 @@
 ### Instructions: GSEAPreranked  ###############################################
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+# set working directory 
 setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
 
 # In this script, we will go through the process of preparing the required input 
 # for GSEAPreranked (which is part of the web-based tool GSEA)
@@ -12,7 +20,17 @@ setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
 # symbols. The reason for this is described in the supplement of this work. 
 
 # therefore, we start with the pre-filtered gene expression data set with the 
-# gene IDs in the initial (Ensembl) ID format and concvert it to HGNC gene symbols
+# gene IDs in the initial (Ensembl) ID format 
+
+# we proceed as follows: 
+# (i) conversion of the gene IDs to HGNC (HUGO) symbols and removal of resulting
+#     duplicated gene IDs 
+# (ii) differential expression analysis using voom/limma, DESeq2, and edgeR 
+# (iii) generation of the gene ranking from each results table generated in (ii)
+# (iv) export of gene rankings to text file 
+# (v) link to information on how to further process the gene rankings in Excel
+
+################################################################################
 
 # we will proceed the gene expression data set which was pre-filtered using 
 # edgeR's filterByExpr
@@ -544,9 +562,9 @@ coldata$condition <- factor(coldata$condition,
 # (II) generate DESeqDataSet
 #############################
 
-dds<-DESeqDataSetFromMatrix(countData = expression_data_filt_symbol, 
-                                   colData = coldata, 
-                                   design = ~condition)
+dds <- DESeqDataSetFromMatrix(countData = expression_data_filt_symbol, 
+                            colData = coldata, 
+                            design = ~ condition)
 
 
 ########################################################
@@ -819,8 +837,8 @@ dds
 
 # shrinkage: 
 DE_results_DESeq2_shrink <- lfcShrink(dds,
-                                             coef = "condition_treated_vs_untreated", 
-                                             type="apeglm")
+                                      coef = "condition_treated_vs_untreated", 
+                                      type="apeglm")
 
 
 # function arguments: 
@@ -918,6 +936,14 @@ names(rankvec_edgeR) <- rownames(DE_results_noNA)
 # 4. sort the vector in descending order 
 rankvec_edgeR <- sort(rankvec_edgeR, decreasing=TRUE)
 
+# 5. special problem here: gene ENSG00000129824 has a ranking value Inf since its adjusted 
+# p-value in the results table of differential expression analysis amounts to 0 
+
+# here, we deal with this issue by resetting this ranking value to the highest ranking value 
+# that occurs among the remaining genes 
+# -> note that there is NO common way of dealing with this issue 
+rankvec_edgeR[rankvec_edgeR == Inf] <- max(rankvec_edgeR[rankvec_edgeR != Inf])
+
 
 
 ################################################################################
@@ -960,6 +986,16 @@ write.table(x = rankvec_limma,
 # -> section "RNK: Ranked list file format (*.rnk)"
 
 
+
+
+
+################################################################################
+### step 7: Clean-up ###########################################################
+################################################################################
+
+# remove all objects from the environment apart from the relevant final objects: 
+
+rm(list=ls()[!ls() %in% c("rankvec_limma", "rankvec_DESeq2", "rankvec_edgeR")])
 
 
 

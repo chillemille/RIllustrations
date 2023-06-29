@@ -2,9 +2,30 @@
 ### Instructions: GSEA (web application) #######################################
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+
 # set working directory as file in which all results of the preceeding scripts
 # are stored 
 setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
+
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
+# In this script, we will 
+# (i) export the transformed RNA-Seq measurements 
+# (ii) prepare and export sample conditions 
+
+# note: some further preprocessing steps are required in Excel (link with
+# instructions are provided below
+
+
+################################################################################
+
+
 
 # In this file, we want to run through the process of preparing the required input
 # for the web application GSEA in R 

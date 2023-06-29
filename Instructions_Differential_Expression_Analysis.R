@@ -2,8 +2,34 @@
 ### Instructions: Differential Expression Analysis #############################
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+
 # set working directory: File in which all resulting data sets are stored 
 setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
+
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
+# perform differential expression analysis for each of the three parametric 
+# methods: 
+# - voom/limma
+# - DESeq2 
+# - edgeR 
+
+# we repeat this process for two gene ID formats: 
+# (I) Entrez gene IDs
+# (II) Ensembl gene IDs 
+
+################################################################################
+
+
+
+
+
 
 # in the case that the GSA method of choice requires a different (e.g. Entrez gene ID format):
 # obtain the pre-filtered gene expression data sets that result from gene ID conversion and 
@@ -399,153 +425,6 @@ DE_results_edgeR_Entrez <- rename(DE_results_edgeR_Entrez, p_adj = FDR)
 
 
 
-
-
-
-
-
-################################################################################
-### Instructions: NOISeq #######################################################
-################################################################################
-
-# # load NOISeq library
-# library(NOISeq)
-# 
-# # NOTE: - NOISeq is considerably less popular compared to voom/limma, DESeq2 and 
-# #         edgeR
-# #       - In contrast to these three methods, NOISeq is non-parametric which means
-# #         that it does not make any distributional assumptions on the underlying 
-# #         data structure
-# 
-# # We want to illustrate its application for the purpose of completeness: 
-# 
-# 
-# ########################################
-# ### step 1: Prepare Sample Conditions ##
-# ########################################
-# 
-# # NOISeq requires the sample conditions to be stored in a data frame: 
-# 
-# sample_conditions_df <- data.frame(condition = sample_conditions) 
-# 
-# 
-# ############################################
-# ### step 2: Prepare Required Input Object ##
-# ############################################
-# 
-# 
-# expression_data_prep <- readData(data= expression_data, 
-#                                  factors = sample_conditions_df)
-# 
-# 
-# # arguments: 
-# # - data: matrix/data frame that contains the counts 
-# # - factors: data frame that contains the sample conditions (see step 1)
-# 
-# 
-# ######################################
-# ### step 3: Run NOISeq (NOISeqbio) ###
-# ######################################
-# 
-# # Important note: NOISeqbio was specifically developed for the case when there 
-# #                 are biological replicates (as opposed to technical replicates)
-# 
-# DE_results_Entrez_NOISeq <- noiseqbio(input = mydata, 
-#                                factor = "condition")
-# 
-# 
-# # arguments: 
-# # - input: object resulting from step 2 (i.e. from function readData())
-# # - factor: indicator of column name of data frame sample_conditions_df which 
-# #           contains the conditions to be compared 
-# # -> note: in step 1, we set the column name of sample_conditions_prep to "condition"
-# # -> Correspondingly, in step 3, we assign argument factor the character value "condition"
-# 
-# 
-# # additional arguments: 
-# # - k: value by which zero counts are replaced (k = 0.5 means that all values in the 
-# #      count data which are equal to 0 are replaced by 0.5)
-# # 
-# # - norm: method for normalization (default "rpkm", i.e. "reads per kilobase per million")
-# # -> alternatives are: * norm = "tmm", i.e. Trimmed Mean of M-Values
-# #                      * norm = "uqua", i.e. upper quartile normalization 
-# #
-# # - conditions: only needed IF two conditions are to be compared by in the process of 
-# #               differential expression and IF factor contains more than two conditions
-# # 
-# # - random.seed: ensures that the results of random sampling are identical with each run,
-# #                leading to identical DE results with each run
-# # -> by default, the argument is set to random.seed = 12345
-# # 
-# # - filter: pre-filtering method to filter out lowly expressed genes prior to differential
-# #           expression analysis
-# # -> options: more information see ?filtered.data
-# #            * filter = 0: No pre-filtering
-# #            * filter = 1: CPM method for pre-filtering
-# #            * filter = 2: Wilcoxon Test for pre-filtering (not recommended if there are 
-# #                          less than 5 samples per condition)
-# #            * filter = 3: Proportion Test 
-# #
-# 
-# 
-# #######################################################
-# ### step 3: Retrieve Differentially Expressed Genes ###
-# #######################################################
-# 
-# DEGs_NOISeq <- degenes(object = DE_results_Entrez_NOISeq, 
-#                        q = 0.95, 
-#                        M = NULL)
-# 
-# 
-# # arguments: 
-# # - object: Results of Differential Expression Analysis generated in step 3
-# # - q: threshold of probability of differential expression 
-# # -> all genes with a probability of differential expression > q are displayed
-# #    in the results 
-# # - M: indicates whether only up-regulated (M = "up"), down-regulated (M = "down")  
-# #      or all genes (M = NULL) with a probability of differential expression > q 
-# #      are to be displayed in the results
-# 
-# 
-# #############################################
-# ### step 4: Interpretation of the Results ###
-# #############################################
-# 
-# # Differentially expressed genes are selected based on column prob
-# # -> based on argument q from step 3, those genes with prob > 0.95
-# #    are selected as differentially expressed 
-# 
-# # Important note: the probability of differential expression prob does NOT correspond
-# # to 1 - pvalue, but rather to 1-FDR, where FDR can be considered an adjusted p-value
-# # -> this justifies the choice of q = 0.05 in step 3, since in limma/voom, DESeq2, 
-# #    edgeR, ... typically those genes with an adjusted p-value < 0.05 are detected 
-# #    as differentially expressed 
-# 
-# 
-# # additional columns: 
-# # - female_mean: 
-# # - male_mean
-# 
-# # -> note: "female" in female_mean and "male" in male_mean are the levels of the factor in 
-# #          sample_conditions_df
-# # -> for a different gene expression data sets, the column names will be different
-# 
-# 
-# 
-# 
-# rowMeans(expression_data[rownames(expression_data) == "9087", pickrell.eset$gender == "female"])
-# 
-
-
-
-
-
-
-
-
-
-
-
 ################################################################################
 ### Save Results ###############################################################
 ################################################################################
@@ -918,153 +797,6 @@ DE_results_edgeR_Ensembl <- as.data.frame(DE_results_edgeR_Ensembl)
 
 # rename column that contains adjusted p-values: rename padj to p_adj
 DE_results_edgeR_Ensembl <- dplyr::rename(DE_results_edgeR_Ensembl, p_adj = FDR)
-
-
-
-
-
-
-
-
-
-################################################################################
-### Instructions: NOISeq #######################################################
-################################################################################
-
-# # load NOISeq library
-# library(NOISeq)
-# 
-# # NOTE: - NOISeq is considerably less popular compared to voom/limma, DESeq2 and 
-# #         edgeR
-# #       - In contrast to these three methods, NOISeq is non-parametric which means
-# #         that it does not make any distributional assumptions on the underlying 
-# #         data structure
-# 
-# # We want to illustrate its application for the purpose of completeness: 
-# 
-# 
-# ########################################
-# ### step 1: Prepare Sample Conditions ##
-# ########################################
-# 
-# # NOISeq requires the sample conditions to be stored in a data frame: 
-# 
-# sample_conditions_df <- data.frame(condition = sample_conditions) 
-# 
-# 
-# ############################################
-# ### step 2: Prepare Required Input Object ##
-# ############################################
-# 
-# 
-# expression_data_prep <- readData(data= expression_data, 
-#                                  factors = sample_conditions_df)
-# 
-# 
-# # arguments: 
-# # - data: matrix/data frame that contains the counts 
-# # - factors: data frame that contains the sample conditions (see step 1)
-# 
-# 
-# ######################################
-# ### step 3: Run NOISeq (NOISeqbio) ###
-# ######################################
-# 
-# # Important note: NOISeqbio was specifically developed for the case when there 
-# #                 are biological replicates (as opposed to technical replicates)
-# 
-# DE_results_Entrez_NOISeq <- noiseqbio(input = mydata, 
-#                                       factor = "condition")
-# 
-# 
-# # arguments: 
-# # - input: object resulting from step 2 (i.e. from function readData())
-# # - factor: indicator of column name of data frame sample_conditions_df which 
-# #           contains the conditions to be compared 
-# # -> note: in step 1, we set the column name of sample_conditions_prep to "condition"
-# # -> Correspondingly, in step 3, we assign argument factor the character value "condition"
-# 
-# 
-# # additional arguments: 
-# # - k: value by which zero counts are replaced (k = 0.5 means that all values in the 
-# #      count data which are equal to 0 are replaced by 0.5)
-# # 
-# # - norm: method for normalization (default "rpkm", i.e. "reads per kilobase per million")
-# # -> alternatives are: * norm = "tmm", i.e. Trimmed Mean of M-Values
-# #                      * norm = "uqua", i.e. upper quartile normalization 
-# #
-# # - conditions: only needed IF two conditions are to be compared by in the process of 
-# #               differential expression and IF factor contains more than two conditions
-# # 
-# # - random.seed: ensures that the results of random sampling are identical with each run,
-# #                leading to identical DE results with each run
-# # -> by default, the argument is set to random.seed = 12345
-# # 
-# # - filter: pre-filtering method to filter out lowly expressed genes prior to differential
-# #           expression analysis
-# # -> options: more information see ?filtered.data
-# #            * filter = 0: No pre-filtering
-# #            * filter = 1: CPM method for pre-filtering
-# #            * filter = 2: Wilcoxon Test for pre-filtering (not recommended if there are 
-# #                          less than 5 samples per condition)
-# #            * filter = 3: Proportion Test 
-# #
-# 
-# 
-# #######################################################
-# ### step 3: Retrieve Differentially Expressed Genes ###
-# #######################################################
-# 
-# DEGs_NOISeq <- degenes(object = DE_results_Entrez_NOISeq, 
-#                        q = 0.95, 
-#                        M = NULL)
-# 
-# 
-# # arguments: 
-# # - object: Results of Differential Expression Analysis generated in step 3
-# # - q: threshold of probability of differential expression 
-# # -> all genes with a probability of differential expression > q are displayed
-# #    in the results 
-# # - M: indicates whether only up-regulated (M = "up"), down-regulated (M = "down")  
-# #      or all genes (M = NULL) with a probability of differential expression > q 
-# #      are to be displayed in the results
-
-
-#############################################
-### step 4: Interpretation of the Results ###
-#############################################
-
-# Differentially expressed genes are selected based on column prob
-# -> based on argument q from step 3, those genes with prob > 0.95
-#    are selected as differentially expressed 
-
-# Important note: the probability of differential expression prob does NOT correspond
-# to 1 - pvalue, but rather to 1-FDR, where FDR can be considered an adjusted p-value
-# -> this justifies the choice of q = 0.05 in step 3, since in limma/voom, DESeq2, 
-#    edgeR, ... typically those genes with an adjusted p-value < 0.05 are detected 
-#    as differentially expressed 
-
-
-# additional columns: 
-# - female_mean: 
-# - male_mean
-
-# -> note: "female" in female_mean and "male" in male_mean are the levels of the factor in 
-#          sample_conditions_df
-# -> for a different gene expression data sets, the column names will be different
-
-
-
-
-#rowMeans(expression_data[rownames(expression_data) == "9087", pickrell.eset$gender == "female"])
-
-
-
-
-
-
-
-
 
 
 

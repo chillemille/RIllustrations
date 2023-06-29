@@ -2,6 +2,27 @@
 ### Instructions: Transformation (and Normalization) of RNA-Seq data ###########
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
+# Transformation of the RNA-Seq data to align its characteristics with those of #
+# microarray measurements using two approaches: 
+# approach 1: transformation using voom 
+# approach 2: transformation using DESeq2's varianceStabilizingTransformation
+
+# we repeat this procedure for two gene ID formats:
+# (i) Entrez gene IDs 
+# (ii) Ensembl gene IDs 
+
+################################################################################
+
+
+
 # set working directory: File in which all resulting data sets are stored 
 setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
 
@@ -331,16 +352,15 @@ library(DESeq2)
 ### Save Results ###############################################################
 ################################################################################
         
-# for the illustration purposes in this work, we proceed with the voom-transformed gene expression
-# data set for both Entrez and Ensembl gene ID 
-# however: you can of course also proceed with the vst-transformed gene expression data sets 
+# save voom-transformed RNA-Seq data 
  
 save(expression_data_voomtransformed_Entrez, file = "./Results_RNASeq_Transformation/expression_data_voomtransformed_Entrez.Rdata")     
 save(expression_data_voomtransformed_Ensembl, file = "./Results_RNASeq_Transformation/expression_data_voomtransformed_Ensembl.Rdata")        
 
-        
-  
-        
+# save variance transformed RNA-Seq data 
+save(expression_data_vsttransformed_Entrez, file = "./Results_RNASeq_Transformation/expression_data_vsttransformed_Entrez.Rdata")     
+save(expression_data_vsttransformed_Ensembl, file = "./Results_RNASeq_Transformation/expression_data_vsttransformed_Ensembl.Rdata")        
+
 
     
 

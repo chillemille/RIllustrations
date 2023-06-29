@@ -2,10 +2,20 @@
 ### Instructions: GOSeq ########################################################
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
 # In this script, we will do the following two things: 
 # 1. Based on the results of differential expression analysis, we will go through 
 #    all steps required to run GOSeq 
 # 2. We will go through all (meaningful) researchers' degrees of freedom 
+
+################################################################################
 
 
 
@@ -290,7 +300,7 @@ GOSeq_results
 
 # IMPORTANT NOTE: the intention behind going through the researchers' degrees of freedom
 # is to give you an understanding of what you can do to adapt the given (parameter)
-# setting to the research question and the data that you have at hand 
+# setting to the research question 
 
 # ->> MORE IMPORTANTLY: the intention behind going through these flexible parameters is 
 # NOT to change them in order to help you obtain the most preferable results by systematically 
@@ -351,8 +361,7 @@ GOSeq_results_method <- goseq(pwf = ProbabilityWeighting,
                               genome = "hg19", 
                               id = "ensGene", 
                               test.cats = "GO:BP", 
-                              method = "Sampling", 
-                              repcnt =  2000) 
+                              method = "Sampling") 
 
 # IMPORTANT NOTE: by default, 2000 samples are calculated in the course of resampling
 #                 -> see argument "repcnt"

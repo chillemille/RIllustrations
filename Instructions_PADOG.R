@@ -2,22 +2,43 @@
 ### Instructions: PADOG ########################################################
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+# set working directory 
+setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
+
+
+
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
+# in this script, we will go through all steps required to run PADOG
+
+################################################################################
+
+
+
 # load required libraries 
 library(PADOG)
 
 
 # note: 
-# (i) PADOG was initially developed for Microarray Data (which differ strongly 
-#     in their characteristics compared to RNA-Seq data)
-# (ii) PADOG 
-
-
+# PADOG was initially developed for Microarray Data (which differ strongly 
+#   in their characteristics compared to RNA-Seq data)
 
 # ->> we therefore need to perform a suitable transformation of the RNA-Seq data
 # to (approximately) align its distributional characteristics with Microarray Data 
 
-# we load the script that contains the transformed Pickrell data set 
-source("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Instructions_RNASeq_Transformation.R")
+# we load the voom-transformed Pickrell data set 
+load("./Results_RNASeq_Transformation/expression_data_voomtransformed_Entrez.Rdata")
+# alternatively: load the gene expression measurements that have been transformed using 
+# DESeq2's varianceStabilizingTransformation 
+load("./Results_RNASeq_Transformation/expression_data_vsttransformed_Entrez.Rdata")
+
+
 
 # additionally, we load the pickrell data set so that we can access the sample conditions
 library(tweeDEseqCountData)
@@ -30,7 +51,8 @@ pickrell.eset$gender
 # we proceed with the voom-transformed pickrell data set and the corresponding phenotype labels
 
 # gene expression measurements (transformed)
-expression_data_transformed <- expression_data_voomtransformed
+# note: you can also proceed with the vst-transformed gene expression measurements 
+expression_data_transformed <- expression_data_voomtransformed_Entrez
 # sample conditions
 sample_conditions <- pickrell.eset$gender 
 

@@ -2,12 +2,27 @@
 ### Instructions: Pre-Filtering  ###############################################
 ################################################################################
 
+# empty environment
+rm(list =ls())
+
+
 # set working directory: File in which all resulting data sets are stored 
 setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
 
 
-# intuition: exclude all genes from subsequent analysis that do not have a sufficient number of read counts across 
-# all samples
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
+# exclusion of all genes that do not have a sufficient number of read counts across 
+# all samples using two options: 
+
+# option 1: pre-filtering using a function provided by edgeR
+# option 2: pre-filtering proposed by DESeq2 
+
+################################################################################
+
+
 
 # load gene expression data set for illustration purposes 
 # the following library contains the gene expression data: 
@@ -179,7 +194,7 @@ dim(expression_data_filterDESEq2_2)
 
 
 ################################################################################
-### Save Results  ##############################################################
+### step 2: Save Results  ######################################################
 ################################################################################
 
 ### save results for subsequent GSA workflow 

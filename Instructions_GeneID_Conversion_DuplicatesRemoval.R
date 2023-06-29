@@ -2,12 +2,35 @@
 ### Guide: Conversion of gene IDs and removal of resulting duplicates ##########
 ################################################################################
 
-# In this script, we want to go through the process of 
-# (i) converting the given gene IDs in the initial format to a different format 
-# (ii) remove the resulting duplicated gene IDs 
+# empty environment
+rm(list =ls())
+
 
 # set working directory: File in which all resulting data sets are stored 
 setwd("/nfsmb/koll/milena.wuensch/Dokumente/GSA_Review/Data")
+
+
+
+################################################################################
+### Content of this script #####################################################
+################################################################################
+
+# In this script, we want to go through the process of 
+# (1.) converting the given gene IDs in the initial format to a different format 
+# (2.) removing the resulting duplicated gene IDs 
+
+# we repeat this process for the two pre-filtered gene expression data sets created
+# in script "Instructions_PreFiltering.R":
+# (i) expression_data_filterByExpr: gene expression data set that has been pre-filtered
+#                                   using edgeR's builtin function filterByExpr()
+# (ii) expression_data_filterDESeq2: gene expression data set that has been pre-filtered
+#                                    using the approach proposed by DESeq2 
+
+################################################################################
+
+
+
+
 
 # Most GSA methods/tools accept the genes from the gene expression data set in 
 # (a number of) specific formats which might not always coincide with the gene 
