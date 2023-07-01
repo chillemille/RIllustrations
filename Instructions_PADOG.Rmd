@@ -9,15 +9,30 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Load Libraries
+# Libraries
 
-```{r }
+## Install Libraries
 
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine. The code below will install {BiocManager} from CRAN, and you can then use this package to install PADOG, tweeDEseqCountDatam, and KEGGREST to your system.
+
+
+```{r eval=FALSE}
+install.packages("BiocManager")
+BiocManager::install("PADOG")
+BiocManager::install("tweeDEseqCountData")
 BiocManager::install("KEGGREST")
+
+```
+
+## Load Libraries
+
+Note that loading these libraries will mask many functions from base R packages. If you run into unexpected errors on functions you're using, it is recommended to use namespacing to explicitly clarify the package from which you need a given function. (I have suppressed the library() loading messages from this document, however.)
+
+```{r warning=FALSE, message=FALSE}
+
 library(PADOG)
 library(tweeDEseqCountData)
 library(KEGGREST)
-
 
 ```
 
@@ -101,35 +116,35 @@ you can specify any integer number as the seed. It is VERY IMPORTANT to choose t
 
 ```{r}
 # run PADOG: 
-   PADOG_results <- padog(esetm = as.matrix(expression_data_transformed), 
-                          group = sample_conditions_prep, 
-                          dseed = 1)
+ PADOG_results <- padog(esetm = as.matrix(expression_data_transformed), 
+                        group = sample_conditions_prep, 
+                        dseed = 1)
 ```
 
 arguments:
 
--   esetm: matrix that contains the expression measurements
+-   `esetm`: matrix that contains the expression measurements
     -   note: since the expression data is initially stored in a data frame, we transform it to a matrix when running PADOG
--   group: sample conditions (has values "c" and "d")
--   dseed:seed for random number generation (used in the process of phenotype permutation)
+-   `group`: sample conditions (has values "c" and "d")
+-   `dseed`: seed for random number generation (used in the process of phenotype permutation)
 
 additional arguments:
 
--   paired: indicates whether the samples in both groups are paired
--   block: if the samples are paired (i.e. argument paired = TRUE), then the paired samples must have the same block value
--   gslist: gives instructions on how to cluster the genes into gene sets
+-   `paired`: indicates whether the samples in both groups are paired
+-   `block`: if the samples are paired (i.e. argument paired = TRUE), then the paired samples must have the same block value
+-   `gslist`: gives instructions on how to cluster the genes into gene sets
     -   gslist = "KEGGRESTpathway": gene sets correspond to KEGG pathways
     -   alternative: provide a user-defined list of gene sets
--   organism: organism from which the gene expression measurements are taken
+-   `organism`: organism from which the gene expression measurements are taken
     -   for human, set organism = "hsa"
     -   the required character value for other organisms can be extracted from the KEGGREST package:
-- obtain required organisms from column organism 
-- annotation: required if gslist is set to "KEGGRESTpathway" and the rownames of esetm are probe IDs 
+- `obtain` required organisms from column organism 
+- `annotation`: required if gslist is set to "KEGGRESTpathway" and the rownames of esetm are probe IDs 
 - can be set to NULL of gslist is set to "KEGGRESTpathway" and the rownames of esetm are in the Entrez gene ID format 
 - if rownames are other gene IDs, then sett annotation = NULL and make sure that the rownames are elements of gslist (and unique!)
-- gs.names: contains names of gene sets -> character vector 
+- `gs.names`: contains names of gene sets -> character vector 
    - must have the same length as gslist 
-- NI: number of phenotype permutations employed in the assessment of the significance of a given gene set 
+- `NI`: number of phenotype permutations employed in the assessment of the significance of a given gene set 
 
 
 
