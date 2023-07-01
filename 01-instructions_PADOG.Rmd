@@ -1,17 +1,11 @@
----
-title: "PADOG"
-author: "Pat Callahan"
-date: "2023-06-29"
-output: html_document
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# (PART) Grouping Label {-}
 
-# Libraries
+# PADOG
 
-## Install Libraries
+## Libraries
+
+### Install Libraries
 
 All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine. The code below will install {BiocManager} from CRAN, and you can then use this package to install PADOG, tweeDEseqCountDatam, and KEGGREST to your system.
 
@@ -24,7 +18,7 @@ BiocManager::install("KEGGREST")
 
 ```
 
-## Load Libraries
+### Load Libraries
 
 Note that loading these libraries will mask many functions from base R packages. If you run into unexpected errors on functions you're using, it is recommended to use namespacing to explicitly clarify the package from which you need a given function. (I have suppressed the library() loading messages from this document, however.)
 
@@ -38,15 +32,15 @@ library(KEGGREST)
 
 Provide a brief note on what these libraries are for?
 
-## PADOG
+### PADOG
 
 The PADOG library does XYZ. You can find more information about it online at LINK.
 
-## tweeDEseqCountData
+### tweeDEseqCountData
 
-## KEGGREST
+### KEGGREST
 
-# Load Data
+## Load Data
 
 This section will change substantially when I reconfigure the project as an R package/book.
 
@@ -81,12 +75,12 @@ sample_conditions <- pickrell.eset$gender
 
 ```
 
-# Step 1: Prepare Sample Conditions
+## Step 1: Prepare Sample Conditions
 
 First, we inspect the form of the initial (raw) sample conditions
 
 ```{r}
-# look at the class: 
+## look at the class: 
 class(sample_conditions)
 # -> the sample labels are already coded as factor
 
@@ -108,13 +102,13 @@ sample_conditions_prep <- factor(sample_conditions,
 
 ```
 
-# Step 2: Run PADOG
+## Step 2: Run PADOG
 
 *It is recommended to set a seed to ensure exact reproducibility of the results if the code is run at multiple time points*
 
 you can specify any integer number as the seed. It is VERY IMPORTANT to choose the seed arbitrarily and WITHOUT INSPECTING the results the seed should NEVER be specified based on which value yields the most preferable results.
 
-```{r}
+```{r eval=FALSE}
 # run PADOG: 
  PADOG_results <- padog(esetm = as.matrix(expression_data_transformed), 
                         group = sample_conditions_prep, 
@@ -148,12 +142,12 @@ additional arguments:
 
 
 
-# Step 3: Adjust for Multiple Testing
+## Step 3: Adjust for Multiple Testing
 
 
 <!-- I haven't included the content from these parts yet, but I hope this example is clear enough! -->
 
 
-# Step 4: Interpretation of Results
+## Step 4: Interpretation of Results
 
 
