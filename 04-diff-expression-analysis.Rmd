@@ -1,2 +1,330 @@
 
 # Differential Expression Analysis
+
+
+## Overview
+
+In this script, we will perform differential expression analysis for each of the three parametric methods: 
+- voom/limma
+- DESeq2 
+- edgeR 
+
+Here, we illustrate this process for two gene ID format Entrez IDs, while we additionally present the identical process for the format Ensembl ID in the R script "Instructions_Differential_Expression_Analysis.R".
+
+Note that at at the end of the illustration for each method, we rename some of the columns in the corresponding results tables to unify them across the different methods. While this step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL, renaming of some columns (such as adjusted p-value) is necessary in this context so that we can use the same code to illustrate further conduct of GSA in the following R scripts, independent of the method for differential expression analysis used. 
+
+
+## Libraries 
+
+### Install Libraries
+
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.
+
+
+```{r, eval = FALSE}
+install.packages("BiocManager")
+BiocManager::install("tweeDESeqCountData")
+BiocManager::install("limma")
+BiocManager::install("DESeq2")
+BiocManager::install("edgeR")
+BiocManager::install("dplyr")
+```
+
+### Load libraries
+
+```{r, message = FALSE}
+library(tweeDEseqCountData)
+library(limma)
+library(DESeq2)
+library(edgeR)
+library(dplyr)
+```
+
+Description of the stats libraries: 
+
+<!-- I removed {dplyr} from the explanations because it's already so well-known -->
+
+#### tweeDESeqCountData
+
+Info about the package here...
+
+#### limma
+
+#### DESeq2
+
+#### edgeR
+
+
+
+### Load data 
+
+Note that depending on the method for differential expression analysis, different methods for pre-filtering are proposed: 
+
+- voom/limma and egdeR: pre-filtering using edgeR's built-in function filterByExpr()
+- DESeq2: manual/simple pre-filtering
+
+ We therefore work with both pre-filtered gene expression data sets generated in "Instructions_PreFiltering": 
+
+#### Previously Generated
+```{r eval=FALSE}
+# data is not yet in the folder. set to eval=FALSE for now
+load("./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_DESeq2.Rdata")
+load("./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_filterByExpr.Rdata")
+```
+
+
+#### {pickrell} Sample Data
+
+Obtain the sample conditions (i.e. phenotypes) of pickrell data set and store them in object "sample_conditions":
+
+```{r}
+# load pickrell data set 
+data(pickrell)
+
+# the conditions/phenotypes of the samples can be addressed with the following syntax: 
+pickrell.eset$gender
+
+# store sample conditions 
+sample_conditions <- pickrell.eset$gender
+```
+
+
+## Differential Expression Analysis (with Entrez gene ID)
+
+(Provide brief description of the options here so people know which one to jump to)
+
+### Option 1: Differential expression analysis using limma 
+
+#### step 1: Generate required input object 
+As described in "Instructions_Differential_Expression_Analysis.R", the gene expression data set exprdat_filter_conv_filterByExpr is
+a data frame and needs to be converted to a DGEList object. 
+
+```{r}
+# store expression data with corresponding sample conditions in object of class DGEList
+
+y <- DGEList(counts = exprdat_filter_conv_filterByExpr, 
+              group = sample_conditions)
+```
+
+required function arguments: 
+
+- counts: matrix that contains RNA-Seq data (i.e. count data)
+
+optional function arguments:
+
+- group: indicates condition of each sample/library. This argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point 
+
+Note: we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions. 
+
+#### step 2: Normalization
+
+The following piece of code generates a normalization factor for each sample which accounts for sample-specific effect (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples. 
+
+```{r}
+y <- calcNormFactors(y)
+```
+
+Note that this function does not transform the count data, but rather generates a normalization factor for each sample which is separately incorporated into the subsequent analysis. 
+
+
+#### step 3: voom transformation 
+
+Perform the voom transformation to make limma, which was initially developed for microarray measurements, available to RNA-Seq data. voom transforms the RNA-Seq data to log counts-per-million and generates a precision weight for each entry in the gene expression data sets to be incorporated into the limma pipeline. 
+
+```{r}
+# (i) generate design matrix (rows correspond to samples, columns indicate which coefficients are to be estimated)
+design_matrix <- model.matrix( ~ sample_conditions)
+
+# (ii) voom transformation 
+y <- voom(y, design = design_matrix)
+```
+
+#### step 4: Differential expression analysis 
+
+```{r}
+# (i) fit a linear model for each gene
+y <- lmFit(y)
+
+# (ii) calculate the statistics for the assessment of differential expression 
+y <- eBayes(y)
+
+# (iii) Get the result table for each gene whose differential expression was assessed 
+DE_results_limma_Entrez <- topTable(y, number =  nrow(y))
+# number = nrow(y) ensures that all genes are displayed in results
+
+
+```
+
+
+
+#### step 5: Rename columns in results of differential expression analysis ######
+
+We rename some of the columns in the results table to unify them across the different methods for differential expression analysis. For this, we use the function rename() provided by the library dplyr. 
+
+
+```{r}
+# first, we transform the results table to a data frame so that we see the results
+# table directly when accessing it through the name "res"
+DE_results_limma_Entrez <- as.data.frame(DE_results_limma_Entrez)
+
+# rename column that contains adjusted p-values: rename padj to p_adj
+DE_results_limma_Entrez <- rename(DE_results_limma_Entrez, p_adj = adj.P.Val)
+
+
+# take a look at the results table: 
+head(DE_results_limma_Entrez, n = 20)
+```
+
+### option 2: Differential expression analysis using DESeq2 
+
+#### step 1: Generate object required by DESeq2 
+DESeq2 operates on the format DESeqDataSet which contains information on the count data, the conditions of the samples and the design. Note that for gene expression data sets that must be imported to R, additional steps are necessary before the following code can be run. 
+
+##### Generate a data frame which contains the condition of each sample
+
+Here, the information on the sample conditions is the only column in the data frame. However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata. 
+
+
+```{r}
+# the names of the samples are stored as the row names of the data frame
+# -> important: make sure that the order of the conditions in sample_conditions corresponds to the order of the 
+# samples in expression_data
+coldata <- data.frame(sample_conditions, 
+                      row.names = colnames(exprdat_filter_conv_DESeq2))
+
+# rename the column header to "condition" 
+colnames(coldata) <- "condition"
+
+# recode the variable condition as a factor 
+# rename the sample conditions (in this case from "female" and "male") to "untreated" and "treated"
+# note: make sure that the control level in variable condition is coded as the first level (i.e. "untreated")
+coldata$condition <- factor(coldata$condition, 
+                            labels = c("untreated","treated"))
+```
+
+##### Generate the DESeqDataSet
+
+```{r}
+dds_Entrez <- DESeqDataSetFromMatrix(countData = exprdat_filter_conv_DESeq2, 
+                                     colData = coldata, 
+                                     design = ~condition)
+
+```
+
+Relevant arguments in function DESeqDataSetFromMatrix:
+
+- countData: count data from the gene expression data set
+
+- colData: data frame that contains information on the samples (see above) such as the conditions of the samples (required) and possibly further variables to correct for (such as batch effects)
+
+- design: indicates which variables from colData are used for modelling
+- -> more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model 
+- -> if more than one variable from colData are used in argument design (e.g. a second variable "batch"), the syntax changes to the following formula: design ~ batch + condition 
+- make sure that the variable of interest (here: variable that represents conditions of the samples) is placed at the end of the formula
+
+
+#### step 2: Differential expression analysis 
+
+DESeq2 calculates the normalization factor of each sample, estimates the dispersion parameter, fits a negative binomial model. A p-value of differential expression for each gene is then computed using a Wald test. 
+
+```{r}
+# perform default differential expression analysis 
+dds_Entrez <- DESeq(dds_Entrez)
+
+# generate results table which provides
+DE_results_DESeq2_Entrez <- results(dds_Entrez)
+```
+Note: function results() provided the base mean across all samples, the estimated log2 fold changes, standard errors, test statistics, p-values, and adjusted p-values for each gene. 
+
+
+#### step 3: Rename columns in results of differential expression analysis 
+
+
+```{r}
+# first, we transform to results table to a data frame so that we see the results
+# table directly when accessing it through the name "res"
+DE_results_DESeq2_Entrez <- as.data.frame(DE_results_DESeq2_Entrez)
+
+# rename column that contains adjusted p-values: rename padj to p_adj
+DE_results_DESeq2_Entrez <- rename(DE_results_DESeq2_Entrez, p_adj = padj)
+
+# take a look at the results table
+head(DE_results_DESeq2_Entrez, n = 20 )
+```
+
+### option 3: Differential expression analysis using edgeR 
+
+
+#### step 1: generate required input object 
+
+Note that edgeR operates on a DGEList object 
+
+
+```{r}
+y <- DGEList(counts = exprdat_filter_conv_filterByExpr, 
+             group = sample_conditions)
+
+```
+Required function arguments: 
+
+- counts: matrix that contains RNA-Seq data (i.e. count data)
+
+Optional function arguments: 
+
+- group: indicates condition of each sample/library 
+-  -> this argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point 
+
+Note thta we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions. 
+
+#### step 2: Normalization 
+
+The following piece of code generates a normalization factor for each sample. This accounts for sample-specific effect (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples. 
+
+```{r}
+y <- calcNormFactors(y)
+```
+Note that this function does not transform the count data, but rather generates a normalization factor for each sample which is incorporated into the subsequent analysis separately. 
+
+
+#### step 3: Estimation of dispersion 
+
+The following code estimates common and tagwise dispersion, namely the variation of the true abundance of a given gene between different samples. This is required to assess differential expression realistically. 
+
+```{r}
+y <- estimateDisp(y)
+```
+
+
+#### step 4: Test for differential expression 
+
+
+```{r}
+# test each gene for differential expression: 
+DE_results_edgeR_Entrez <- exactTest(y)
+
+# extract pre-specified (n) number of genes
+DE_results_edgeR_Entrez <- topTags(DE_results_edgeR_Entrez, n = nrow(DE_results_edgeR_Entrez))
+```
+
+Note that argument n specifies the number of top differentially expressed genes to be displayed in the results. Setting it to n = nrow(DE_results_Entrez) ensures the results of all genes whose differential expression was assessed are displayed. 
+
+
+#### step 5: Rename columns in the results of differential expression analysis
+
+
+```{r}
+# first, we transform the results table to a data frame so that we see the results
+# table directly when accessing it through the name "res"
+DE_results_edgeR_Entrez <- as.data.frame(DE_results_edgeR_Entrez)
+
+# rename column that contains adjusted p-values: rename padj to p_adj
+DE_results_edgeR_Entrez <- rename(DE_results_edgeR_Entrez, p_adj = FDR)
+
+
+# take a look at the results table
+head(DE_results_edgeR_Entrez, n = 20)
+```
+
+
+
+
