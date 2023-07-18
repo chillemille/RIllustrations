@@ -44,12 +44,10 @@ library(org.Hs.eg.db)
 
 Description of the libraries: 
 
-- clusterProfiler: This library offers tools for the statistical analysis visualization of gene data. We use its function for the conversion of the gene IDs from one format to another. 
+- clusterProfiler: We here use clusterProfiler's function for gene ID conversion.
 
-- org.Hs.eg.db: !!!!!!!!!!!!!!!!!!!!!!!!!!!!! For human, must be adapted for other organisms 
- note: if, for instance, the organism is mouse, then the library "org.Mm.eg.db" must be loaded via 
- library(org.Mm.eg.db)
- and the argument OrgDb must be set to OrgDb = org.Mm.eg.db
+- org.Hs.eg.db: Provides genome-wide annotation for humans. When working with a different organism,  the user has to provide a different package ('Overview_Packages'). Note that this library is required when running clusterProfiler's function for gene ID conversion.
+
 
 #### Load pre-filtered gene expression data sets generated in file "Instructions_PreFiltering" and stored in file "Results_PreFiltering"
 
@@ -125,7 +123,7 @@ Description of function arguments:
 - by.y = "ENSEMBL": use the column that contains the Ensembl gene IDs 
 
 
-##### Take a look at dimension of resulting data set:
+##### Take a look at the dimension of resulting data set:
 
 ```{r}
 

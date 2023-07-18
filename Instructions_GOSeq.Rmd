@@ -34,9 +34,9 @@ library(goseq)
 
 Description of the libraries: 
 
-- tweeDESeqCountData: in addition to the results of differential expression analysis, we also need the raw count data for the case that we want to adjust the bias to account for (see step 4 of 'Researcher's degrees of freedom at the end of this script)
+- tweeDESeqCountData: In addition to the results of differential expression analysis, we also need the raw count data for the case that we want to adjust the bias to account for (see step 4 of 'Researcher's degrees of freedom' at the end of this script).
 
-- goseq: 
+- goseq: Offers the implementation of the method GOSeq.
 
 #### Load data 
 
