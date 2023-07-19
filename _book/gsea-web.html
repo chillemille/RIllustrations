@@ -6,20 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 10 GSEA WEB | RNA Sequencing Guide</title>
 <meta name="author" content="Milena Wünsch and Pat Callahan">
-<meta name="description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta name="description" content="In this script, we will 1. export the transformed RNA-Seq measurements 2. prepare and export sample conditions Note that some further preprocessing steps are required in Excel. For these further...">
 <meta name="generator" content="bookdown 0.34 with bs4_book()">
 <meta property="og:title" content="Chapter 10 GSEA WEB | RNA Sequencing Guide">
 <meta property="og:type" content="book">
-<meta property="og:description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta property="og:description" content="In this script, we will 1. export the transformed RNA-Seq measurements 2. prepare and export sample conditions Note that some further preprocessing steps are required in Excel. For these further...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 10 GSEA WEB | RNA Sequencing Guide">
-<meta name="twitter:description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta name="twitter:description" content="In this script, we will 1. export the transformed RNA-Seq measurements 2. prepare and export sample conditions Note that some further preprocessing steps are required in Excel. For these further...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -64,11 +58,11 @@ set in the _output.yml file.&lt;/p&gt;">
 <li class="book-part">With Gene ID Conversion</li>
 <li><a class="" href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">11</span> Cluster Profiler: GSEA KEGG</a></li>
 <li><a class="" href="cluster-profiler-ora.html"><span class="header-section-number">12</span> Cluster Profiler: ORA</a></li>
-<li><a class="" href="padog-1.html"><span class="header-section-number">13</span> PADOG</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">13</span> PADOG</a></li>
 </ul>
 
         <div class="book-extra">
-          <p><a id="book-repo" href="https://github.com/rstudio/bookdown-demo">View book source <i class="fab fa-github"></i></a></p>
+          
         </div>
       </nav>
 </div>
@@ -76,7 +70,123 @@ set in the _output.yml file.&lt;/p&gt;">
 <h1>
 <span class="header-section-number">10</span> GSEA WEB<a class="anchor" aria-label="anchor" href="#gsea-web"><i class="fas fa-link"></i></a>
 </h1>
-
+<p>In this script, we will
+1. export the transformed RNA-Seq measurements
+2. prepare and export sample conditions</p>
+<p>Note that some further preprocessing steps are required in Excel. For these further preprocessing steps, click on the following link:
+<a href="http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats" class="uri">http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats</a>.</p>
+<div id="libraries-8" class="section level2" number="10.1">
+<h2>
+<span class="header-section-number">10.1</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-8"><i class="fas fa-link"></i></a>
+</h2>
+<p>All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.</p>
+<div class="sourceCode" id="cb147"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"tweeDEseqCountData"</span><span class="op">)</span></span></code></pre></div>
+<p>Load libraries:</p>
+<div class="sourceCode" id="cb148"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.creal.cat/jrgonzalez/software.htm">tweeDEseqCountData</a></span><span class="op">)</span> <span class="co"># for pickrell data set </span></span></code></pre></div>
+<p>Description of the library:</p>
+<ul>
+<li>tweeDEseqCountData: Here, we need the conditions of the samples in the Pickrell data set because these are (in a processed form) required for the web-based tool GSEA.</li>
+</ul>
+<div id="load-data-5" class="section level4" number="10.1.0.1">
+<h4>
+<span class="header-section-number">10.1.0.1</span> Load data<a class="anchor" aria-label="anchor" href="#load-data-5"><i class="fas fa-link"></i></a>
+</h4>
+<p>For the web-based tool, we work with the pre-filtered and transformed gene expression measurements. Since GSEA accepts a wide variety of gene ID formats, we can input the gene IDs in the Ensembl ID format.<br>
+Note that for the purpose of simplicity, we here work with the voom-transformed data. However, you can easily switch to the gene expression data set transformed using DESeq2’s varianceStabilizingTransformation.</p>
+<div class="sourceCode" id="cb149"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_RNASeq_Transformation/expression_data_voomtransformed_Ensembl.Rdata"</span><span class="op">)</span></span></code></pre></div>
+<p>For an easier readability, we store the gene expression data set in a new object with a neutral name.</p>
+<div class="sourceCode" id="cb150"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_transformed</span> <span class="op">&lt;-</span> <span class="va">expression_data_voomtransformed_Ensembl</span></span></code></pre></div>
+<p>As mentioned above, GSEA requires (a preprocessed version of) the sample conditions. In the case of the pickrell data set used for these illustrations, we obtain these using the following commands:</p>
+<div class="sourceCode" id="cb151"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load pickrell data </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">pickrell</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># store sample conditions</span></span>
+<span><span class="va">sample_conditions</span> <span class="op">&lt;-</span> <span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span></span></code></pre></div>
+</div>
+<div id="step-1-export-the-transformed-gene-expression-measurements" class="section level3" number="10.1.1">
+<h3>
+<span class="header-section-number">10.1.1</span> step 1: Export the (transformed) gene expression measurements<a class="anchor" aria-label="anchor" href="#step-1-export-the-transformed-gene-expression-measurements"><i class="fas fa-link"></i></a>
+</h3>
+<p>We export the transformed gene expression measurements to a .txt file and into the pre-specified folder “Input_Objects_GSEA_web”.</p>
+<div class="sourceCode" id="cb152"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Generate the path that indicates that we will store the transformed gene expression measurements in the object "expression_data_transformed.txt, which is located in the file "Input_Objects_GSEA_web"</span></span>
+<span><span class="va">path_measurements</span>  <span class="op">&lt;-</span> <span class="st">"./data/Input_Objects_GSEA_web/expression_data_transformed.txt"</span></span>
+<span></span>
+<span><span class="co"># export the gene expression measurements </span></span>
+<span><span class="co">### export </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span><span class="va">expression_data_transformed</span>,</span>
+<span>            file <span class="op">=</span> <span class="va">path_measurements</span>,</span>
+<span>            quote <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>            row.names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>            col.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Arguments of function write.table()</p>
+<ul>
+<li><p>quote = FALSE ensures that none of the characters (in this case the gene and sample
+identifiers, i.e. row and column names) are surrounded by double quotes</p></li>
+<li><p>row.names = TRUE ensures that the gene IDs are included in the export</p></li>
+<li><p>col.names = TRUE ensures that the samples IDs are included in the export</p></li>
+</ul>
+<p>### step 2: Prepare and export the sample conditions</p>
+<p>GSEA accepts the sample conditions in the (binary) format with values 0 and 1. For the pickrell data set, we inspect the current values in which the sample conditions are stored:</p>
+<div class="sourceCode" id="cb153"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># inspect the raw sample conditions:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">sample_conditions</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] male   male   female male   female male   female male  </span></span>
+<span><span class="co">#&gt;  [9] female male  </span></span>
+<span><span class="co">#&gt; Levels: female male</span></span>
+<span></span>
+<span><span class="co"># inspect the levels of the sample conditions:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Factor-class.html">levels</a></span><span class="op">(</span><span class="va">sample_conditions</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "female" "male"</span></span></code></pre></div>
+<p>Currently, the sample conditions are coded as “female” and “male”. We now want to convert both levels to 0 and 1:</p>
+<div class="sourceCode" id="cb154"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># (i) create vector to contain the sample conditions in the right format</span></span>
+<span><span class="va">sample_conditions_prepared</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># (ii) assign all "females", which is the first level of the factor, the value 0</span></span>
+<span><span class="va">sample_conditions_prepared</span><span class="op">[</span> <span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Factor-class.html">levels</a></span><span class="op">(</span><span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span><span class="co"># (iii) assign all "males", which is the second level of the factor, the value 1</span></span>
+<span><span class="va">sample_conditions_prepared</span><span class="op">[</span> <span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Factor-class.html">levels</a></span><span class="op">(</span><span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span><span class="op">)</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="co"># inspect the (first few) sample conditions: </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">sample_conditions_prepared</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] 1 1 0 1 0 1 0 1 0 1</span></span></code></pre></div>
+<p>Export:</p>
+<div class="sourceCode" id="cb155"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># the following path indicates that we store the prepared sample conditions in the object "sample_conditions_prepared.txt" in the file "Input_Objects_GSEA_web". </span></span>
+<span><span class="va">path_conditions</span> <span class="op">&lt;-</span> <span class="st">"./data/Input_Objects_GSEA_web/sample_conditions_prepared.txt"</span></span>
+<span></span>
+<span><span class="co"># export </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">sample_conditions_prepared</span>,</span>
+<span>            file <span class="op">=</span> <span class="va">path_conditions</span>,</span>
+<span>            quote <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>            row.names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>            col.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Arguments of function write.table()</p>
+<ul>
+<li><p>quote = FALSE ensures that none of the characters (in this case the gene and sample
+identifiers, i.e. row and column names) are surrounded by double quotes</p></li>
+<li><p>row.names = TRUE ensures that the gene IDs are included in the export</p></li>
+<li><p>col.names = TRUE ensures that the samples IDs are included in the export</p></li>
+</ul>
+</div>
+<div id="step-3-further-preparation-of-input-object-in-excel" class="section level3" number="10.1.2">
+<h3>
+<span class="header-section-number">10.1.2</span> step 3: Further preparation of input object in Excel<a class="anchor" aria-label="anchor" href="#step-3-further-preparation-of-input-object-in-excel"><i class="fas fa-link"></i></a>
+</h3>
+<p>For instructions of the further preparation of the text file in Excel, open the following link:<br><a href="http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats" class="uri">http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats</a><br></p>
+<p>Follow the instructions in section</p>
+<ul>
+<li><p>“GCT: Gene Cluster Text file format (*.gct)“: for further preparation of expression_data_transformed</p></li>
+<li><p>“CLS: Categorical (e.g tumor vs. normal) class file format (*.cls)“: for further preparation of sample_conditions_prepared</p></li>
+</ul>
+</div>
+</div>
 </div>
 
 
@@ -86,12 +196,19 @@ set in the _output.yml file.&lt;/p&gt;">
 <div class="next"><a href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">11</span> Cluster Profiler: GSEA KEGG</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#gsea-web"><span class="header-section-number">10</span> GSEA WEB</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#gsea-web"><span class="header-section-number">10</span> GSEA WEB</a></li>
+<li>
+<a class="nav-link" href="#libraries-8"><span class="header-section-number">10.1</span> Libraries</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#step-1-export-the-transformed-gene-expression-measurements"><span class="header-section-number">10.1.1</span> step 1: Export the (transformed) gene expression measurements</a></li>
+<li><a class="nav-link" href="#step-3-further-preparation-of-input-object-in-excel"><span class="header-section-number">10.1.2</span> step 3: Further preparation of input object in Excel</a></li>
+</ul>
+</li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-<li><a id="book-source" href="https://github.com/rstudio/bookdown-demo/blob/master/09-gsea-web.Rmd">View source <i class="fab fa-github"></i></a></li>
-          <li><a id="book-edit" href="https://github.com/rstudio/bookdown-demo/edit/master/09-gsea-web.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+          
         </ul>
 </div>
     </nav>
@@ -103,7 +220,7 @@ set in the _output.yml file.&lt;/p&gt;">
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-02.</p>
+    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-19.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

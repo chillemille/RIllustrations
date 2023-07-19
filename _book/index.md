@@ -1,57 +1,50 @@
 --- 
 title: "RNA Sequencing Guide"
 author: "Milena Wünsch and Pat Callahan"
-date: "2023-07-02"
+date: "2023-07-19"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [book.bib, packages.bib]
 # url: your book url like https://bookdown.org/yihui/bookdown
 # cover-image: path to the social sharing image like images/cover.jpg
 description: |
-  This is a minimal example of using the bookdown package to write a book.
-  The HTML output format for this example is bookdown::bs4_book,
-  set in the _output.yml file.
+  This is a book about...
 biblio-style: apalike
 csl: chicago-fullnote-bibliography.csl
 ---
 
+
+```r
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 # About
 
-This is a _sample_ book written in **Markdown**. You can use anything that Pandoc's Markdown supports; for example, a math equation $a^2 + b^2 = c^2$.
+(What is this book about?)
 
-## Usage 
+To run the entire pipeline in this illustration, from pre-filtering to the actual GSA tool, several R packages are required. We here provide an overview of all packages that must be installed (if not already available) and loaded. In the sections that correspond to the individual steps, we give an overview of the locally required libraries. 
 
-Each **bookdown** chapter is an .Rmd file, and each .Rmd file can contain one (and only one) chapter. A chapter *must* start with a first-level heading: `# A good chapter`, and can contain one (and only one) first-level heading.
+## Required R Packages
 
-Use second-level and higher headings within chapters like: `## A short section` or `### An even shorter section`.
+- tweeDEseqCountData: provides count data from three RNA-Seq experiments together with information such as the conditions of the samples. We work work the gene expression data set provided by Pickrell et al. (2010) in our illustrations. 
 
-The `index.Rmd` file is required, and is also your first book chapter. It will be the homepage when you render the book.
+- BiocManager: offers functionalities to install and manage the packages that are a part of the Bioconductor project. Here, we particularly use it to install the required Bioconductor packages. 
 
-## Render book
+- clusterProfiler: offers functionalities to explore the functional characteristics of high-throughput genomic data. Here, we use its functions to perform ORA and GSEA and for the conversion of the gene IDs. 
 
-You can render the HTML version of this example book without changing anything:
+- org.Hs.eg.db: provides the genome-wide annotation for the human organism. Note that if your gene expression measurements are extracted from a different organism, you must adapt this library accordingly. For instance, the organism mouse requires the library org.Mm.eg.db. \
+This library is often required when working with the library clusterProfiler. 
 
-1. Find the **Build** pane in the RStudio IDE, and
+- limma: provides functionalities for analysing data from gene expression experiments. limma allows the analysis of microarray as well as RNA-Seq data for which the analysis pipelines are similar. We here use limma for differential expression analysis and make use of a transformation of the RNA-Seq data to align its characteristics for microarray data. 
 
-1. Click on **Build Book**, then select your output format, or select "All formats" if you'd like to use multiple formats from the same book source files.
+- edgeR: provides functionalities to analyse data from RNA sequencing technologies and focuses on differential expression analysis with biological (as opposed to technical) replicates. 
 
-Or build the book from the R console:
+- DESeq2: offers functionalities for visualization and differential expression analysis of RNA-Seq data.  
 
+- dplyr: provides various functionalities for data manipulation. \
+We use it here to unify the results tables of the different methods for differential expression analysis. While this is not necessary in general, it simplifies our illustrations as we can use the same GSA pipelines following differential expression analysis, independent of the method for differential expression analysis used.
 
-```r
-bookdown::render_book()
-```
+- goseq: implements the GSA method GOSeq.
 
-To render this example to PDF as a `bookdown::pdf_book`, you'll need to install XeLaTeX. You are recommended to install TinyTeX (which includes XeLaTeX): <https://yihui.org/tinytex/>.
-
-## Preview book
-
-As you work, you may start a local server to live preview this HTML book. This preview will update as you edit the book when you save individual .Rmd files. You can start the server in a work session by using the RStudio add-in "Preview book", or from the R console:
-
-
-```r
-bookdown::serve_book()
-```
-
-
+- PADOG: implements the GSA method PADOG.ats from the same book source files.
 

@@ -6,20 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 4 Gene ID Duplicate Removals | RNA Sequencing Guide</title>
 <meta name="author" content="Milena Wünsch and Pat Callahan">
-<meta name="description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta name="description" content="In this script, we will go through the process of (1.) converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID) format (2.) removing the resulting...">
 <meta name="generator" content="bookdown 0.34 with bs4_book()">
 <meta property="og:title" content="Chapter 4 Gene ID Duplicate Removals | RNA Sequencing Guide">
 <meta property="og:type" content="book">
-<meta property="og:description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta property="og:description" content="In this script, we will go through the process of (1.) converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID) format (2.) removing the resulting...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 4 Gene ID Duplicate Removals | RNA Sequencing Guide">
-<meta name="twitter:description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta name="twitter:description" content="In this script, we will go through the process of (1.) converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID) format (2.) removing the resulting...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -64,11 +58,11 @@ set in the _output.yml file.&lt;/p&gt;">
 <li class="book-part">With Gene ID Conversion</li>
 <li><a class="" href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">11</span> Cluster Profiler: GSEA KEGG</a></li>
 <li><a class="" href="cluster-profiler-ora.html"><span class="header-section-number">12</span> Cluster Profiler: ORA</a></li>
-<li><a class="" href="padog-1.html"><span class="header-section-number">13</span> PADOG</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">13</span> PADOG</a></li>
 </ul>
 
         <div class="book-extra">
-          <p><a id="book-repo" href="https://github.com/rstudio/bookdown-demo">View book source <i class="fab fa-github"></i></a></p>
+          
         </div>
       </nav>
 </div>
@@ -76,19 +70,424 @@ set in the _output.yml file.&lt;/p&gt;">
 <h1>
 <span class="header-section-number">4</span> Gene ID Duplicate Removals<a class="anchor" aria-label="anchor" href="#gene-id-duplicate-removals"><i class="fas fa-link"></i></a>
 </h1>
+<p>In this script, we will go through the process of</p>
+<ul>
+<li>(1.) converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID) format</li>
+<li>(2.) removing the resulting duplicated gene IDs</li>
+</ul>
+<p>In this document, We illustrate this process for one of the two pre-filtered gene expression data sets created in file “Instructions_PreFiltering”:
+- expression_data_filterByExpr: gene expression data set that has been pre-filtered using edgeR’s builtin function filterByExpr()</p>
+<p>In the corresponding R-Script “Instructions_GeneID_Conversion_DuplicatesRemoval.R”, we additionally illustrate the identical process for the gene expression data set</p>
+<ul>
+<li>expression_data_filterDESeq2: gene expression data set that has been pre-filtered using the approach proposed by DESeq2</li>
+</ul>
+<div id="libraries-2" class="section level3" number="4.0.1">
+<h3>
+<span class="header-section-number">4.0.1</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-2"><i class="fas fa-link"></i></a>
+</h3>
+<p>All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"clusterProfiler"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"org.Hs.eg.db"</span><span class="op">)</span></span></code></pre></div>
+<div id="load-libraries-1" class="section level4" number="4.0.1.1">
+<h4>
+<span class="header-section-number">4.0.1.1</span> Load libraries<a class="anchor" aria-label="anchor" href="#load-libraries-1"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yulab-smu.top/biomedical-knowledge-mining-book/">clusterProfiler</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">org.Hs.eg.db</span><span class="op">)</span></span></code></pre></div>
+<p>Description of the libraries:</p>
+<ul>
+<li><p>clusterProfiler: We here use clusterProfiler’s function for gene ID conversion.</p></li>
+<li><p>org.Hs.eg.db: Provides genome-wide annotation for humans. When working with a different organism, the user has to provide a different package (‘Overview_Packages’). Note that this library is required when running clusterProfiler’s function for gene ID conversion.</p></li>
+</ul>
+</div>
+<div id="load-pre-filtered-gene-expression-data-sets-generated-in-file-instructions_prefiltering-and-stored-in-file-results_prefiltering" class="section level4" number="4.0.1.2">
+<h4>
+<span class="header-section-number">4.0.1.2</span> Load pre-filtered gene expression data sets generated in file “Instructions_PreFiltering” and stored in file “Results_PreFiltering”<a class="anchor" aria-label="anchor" href="#load-pre-filtered-gene-expression-data-sets-generated-in-file-instructions_prefiltering-and-stored-in-file-results_prefiltering"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_PreFiltering/expression_data_filterByExpr.Rdata"</span><span class="op">)</span></span>
+<span><span class="co"># The alternative gene expression data set would be </span></span>
+<span><span class="co"># load("./data/Results_PreFiltering/expression_data_filterDESeq2.Rdata")</span></span></code></pre></div>
+</div>
+</div>
+<div id="gene-id-conversion-for-expression_data_filterbyexpr" class="section level2" number="4.1">
+<h2>
+<span class="header-section-number">4.1</span> Gene ID conversion for expression_data_filterByExpr<a class="anchor" aria-label="anchor" href="#gene-id-conversion-for-expression_data_filterbyexpr"><i class="fas fa-link"></i></a>
+</h2>
+<div id="step-1-obtain-mapping-from-ensembl-to-entrez-id-format" class="section level3" number="4.1.1">
+<h3>
+<span class="header-section-number">4.1.1</span> step 1: Obtain mapping from Ensembl to Entrez ID format<a class="anchor" aria-label="anchor" href="#step-1-obtain-mapping-from-ensembl-to-entrez-id-format"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># the rownames of the gene expression data set correspond to the gene IDs </span></span>
+<span><span class="va">bitr_EnsToEntr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/clusterProfiler/man/bitr.html">bitr</a></span><span class="op">(</span>gene <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">expression_data_filterByExpr</span><span class="op">)</span>, </span>
+<span>                         fromType <span class="op">=</span> <span class="st">"ENSEMBL"</span>, </span>
+<span>                         toType <span class="op">=</span> <span class="st">"ENTREZID"</span>, </span>
+<span>                         OrgDb <span class="op">=</span> <span class="va">org.Hs.eg.db</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 'select()' returned 1:many mapping between keys and</span></span>
+<span><span class="co">#&gt; columns</span></span>
+<span><span class="co">#&gt; Warning in bitr(gene =</span></span>
+<span><span class="co">#&gt; rownames(expression_data_filterByExpr), fromType =</span></span>
+<span><span class="co">#&gt; "ENSEMBL", : 3.73% of input gene IDs are fail to map...</span></span></code></pre></div>
+<p>Observe the warning message: Some of the gene IDs in the initial (Ensembl) ID format could not be translated to a gene ID in the desired (Entrez) ID format.</p>
+<p>Description of function: bitr() translates the gene IDs of format “fromType” to the format “toType”.</p>
+<p>Description of arguments:</p>
+<ul>
+<li>gene IDs: gene IDs to be converted (stored in the rownames of the gene expression data set)</li>
+<li>fromType: initial gene ID format that is to be converted</li>
+<li>toType: gene ID format to be converted to</li>
+<li>OrgDb: annotation data base of organisms from which the gene expression measurements originate. The corresponding argument must be loaded as a library (see above)</li>
+</ul>
+<p>Note that the arguments “fromType” and “toType” must be set as one of the following, depending on the given and the
+required gene ID format:
+ACCNUM, ALIAS, Ensembl, EnsemblPROT, EnsemblTRANS, ENTREZID, ENZYME, EVIDENCE,
+EVIDENCEALL, GENENAME, GENETYPE, GO, GOALL, IPI, MAP, OMIM, ONTOLOGY, ONTOLOGYALL, PATH, PFAM, PMID, PROSITE,
+REFSEQ, SYMBOL, UCSCKG, UNIPROT.</p>
+<div id="inspect-object-bitr_enstoentr" class="section level5" number="4.1.1.0.1">
+<h5>
+<span class="header-section-number">4.1.1.0.1</span> Inspect object bitr_EnsToEntr<a class="anchor" aria-label="anchor" href="#inspect-object-bitr_enstoentr"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           ENSEMBL ENTREZID</span></span>
+<span><span class="co">#&gt; 1 ENSG00000000419     8813</span></span>
+<span><span class="co">#&gt; 2 ENSG00000000457    57147</span></span>
+<span><span class="co">#&gt; 3 ENSG00000000460    55732</span></span>
+<span><span class="co">#&gt; 4 ENSG00000000938     2268</span></span>
+<span><span class="co">#&gt; 5 ENSG00000001036     2519</span></span>
+<span><span class="co">#&gt; 6 ENSG00000001167     4800</span></span></code></pre></div>
+<p>See that bitr() results in a mapping between the initial (Ensembl ID) and the desired (Entrez ID) format</p>
+<p>We observe that:
+- not all Ensembl gene IDs can be mapped to a corresponding Entrez gene ID
+- some individual Ensembl gene IDs were mapped to multiple distinct Entrez gene IDs
+- some distinct Ensembl gene IDs were mapped to an identical Entrez gene ID</p>
+</div>
+</div>
+<div id="step-2-merge-mapping-with-initial-gene-expression-data-set" class="section level3" number="4.1.2">
+<h3>
+<span class="header-section-number">4.1.2</span> step 2: Merge mapping with initial gene expression data set<a class="anchor" aria-label="anchor" href="#step-2-merge-mapping-with-initial-gene-expression-data-set"><i class="fas fa-link"></i></a>
+</h3>
+<p>Concatenate initial gene expression data set with the mapping from initial (Ensembl) to required (Entrez) gene ID format. Merge by row names of expression data set and Ensembl ID of gene ID mapping</p>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span>  <span class="va">merged_expression_data_filterByExpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Vector-merge.html">merge</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">expression_data_filterByExpr</span>, </span>
+<span>                                               y <span class="op">=</span> <span class="va">bitr_EnsToEntr</span>, </span>
+<span>                                               by.x<span class="op">=</span><span class="fl">0</span>, </span>
+<span>                                               by.y<span class="op">=</span><span class="st">"ENSEMBL"</span>, </span>
+<span>                                               all.y<span class="op">=</span><span class="cn">TRUE</span>, sort<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  </span></code></pre></div>
+<p>Description of function arguments:</p>
+<ul>
+<li>by.x and by.y specify by which columns expression_data_filterByExpr and bitr_EnsToEntr are concatenated:</li>
+<li>by.x = 0: use row names of expression_data_filterByExpr (the row names contain the gene IDs)</li>
+<li>by.y = “ENSEMBL”: use the column that contains the Ensembl gene IDs</li>
+</ul>
+<div id="take-a-look-at-the-dimension-of-resulting-data-set" class="section level5" number="4.1.2.0.1">
+<h5>
+<span class="header-section-number">4.1.2.0.1</span> Take a look at the dimension of resulting data set:<a class="anchor" aria-label="anchor" href="#take-a-look-at-the-dimension-of-resulting-data-set"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6041   71</span></span></code></pre></div>
+<ul>
+<li>number of genes in merged_expression_data_filterByExpr has decreased to 6040
+-&gt; this is directly caused by the circumstance that typically, not all initial (Ensembl) gene IDs can be converted to the required (Entrez) gene ID</li>
+<li>the expression data set has been extended by two columns:
+(1.) the very last column (here called “ENTREZID” containing the converted (Entrez) gene ID
+(2.) the very first column (here called Row.names) with the initial (Ensembl) gene IDs that were originally stored in the row names</li>
+</ul>
+</div>
+</div>
+<div id="step-3-take-a-closer-look-at-the-duplicated-gene-ids" class="section level3" number="4.1.3">
+<h3>
+<span class="header-section-number">4.1.3</span> step 3: Take a closer look at the duplicated gene IDs<a class="anchor" aria-label="anchor" href="#step-3-take-a-closer-look-at-the-duplicated-gene-ids"><i class="fas fa-link"></i></a>
+</h3>
+<div id="case-1-a-single-ensembl-id-is-mapped-to-multiple-distinct-entrez-ids" class="section level5" number="4.1.3.0.1">
+<h5>
+<span class="header-section-number">4.1.3.0.1</span> case 1: A single Ensembl ID is mapped to multiple distinct Entrez IDs<a class="anchor" aria-label="anchor" href="#case-1-a-single-ensembl-id-is-mapped-to-multiple-distinct-entrez-ids"><i class="fas fa-link"></i></a>
+</h5>
+<p>From the mapping, obtain the number of cases in which an Ensembl gene ID was converted to several ENTREZ IDs, i.e. the number of times an Ensembl ID appears more than once in the mapping:</p>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENSEMBL</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; [1] 28</span></span></code></pre></div>
+<p>Obtain a list of all duplicated Ensembl IDs (i.e. all Ensembl IDs that were mapped to multiple distinct Entrez gene IDs) and inspect the corresponding conversion pattern to Entrez ID.</p>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate which Ensembl IDs are duplicated </span></span>
+<span><span class="va">ind_duplicated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENSEMBL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter the list of all Ensembl IDs to those that are mapped to multiple Entrez IDs </span></span>
+<span><span class="va">dupl_ensembl</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENSEMBL</span><span class="op">[</span><span class="va">ind_duplicated</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># take a look at some of the Ensembl IDs</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">dupl_ensembl</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "ENSG00000063587" "ENSG00000088298" "ENSG00000111215"</span></span>
+<span><span class="co">#&gt; [4] "ENSG00000111850" "ENSG00000137843"</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># filter mapping to those Ensembl IDs that are mapped to multiple Entrez IDs </span></span>
+<span><span class="va">duplicated_conversion_ens</span> <span class="op">&lt;-</span> <span class="va">bitr_EnsToEntr</span><span class="op">[</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENSEMBL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">dupl_ensembl</span>,<span class="op">]</span></span>
+<span>      </span>
+<span></span>
+<span><span class="co"># take a look at the mapping resulting in duplicated Ensembl IDs </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">duplicated_conversion_ens</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              ENSEMBL  ENTREZID</span></span>
+<span><span class="co">#&gt; 303  ENSG00000063587     10838</span></span>
+<span><span class="co">#&gt; 304  ENSG00000063587 105373378</span></span>
+<span><span class="co">#&gt; 615  ENSG00000088298     55741</span></span>
+<span><span class="co">#&gt; 616  ENSG00000088298 111089941</span></span>
+<span><span class="co">#&gt; 1521 ENSG00000111215      5554</span></span>
+<span><span class="co">#&gt; 1522 ENSG00000111215     11272</span></span></code></pre></div>
+</div>
+<div id="case-2-multiple-ensembl-ids-are-mapped-to-the-same-entrez-id" class="section level5" number="4.1.3.0.2">
+<h5>
+<span class="header-section-number">4.1.3.0.2</span> case 2: Multiple Ensembl IDs are mapped to the same Entrez ID<a class="anchor" aria-label="anchor" href="#case-2-multiple-ensembl-ids-are-mapped-to-the-same-entrez-id"><i class="fas fa-link"></i></a>
+</h5>
+<p>In this case, the corresponding Entrez IDs appear repeatedly in the mapping.</p>
+<p>From the mapping, obtain the number of cases in which multiple Ensembl IDs are mapped to the same Entrez ID.</p>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENTREZ</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+<p>Obtain a list of all duplicated Entrez IDs, i.e. those Entrez IDs that appear more then once in the mapping, and inspect the corresponding conversion pattern.</p>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate which Entrez IDs appear more then once in the mapping: </span></span>
+<span><span class="va">ind_duplicated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENTREZID</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter the list of all Entrez IDs to the duplicated ones </span></span>
+<span><span class="va">dupl_entrez</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENTREZID</span><span class="op">[</span><span class="va">ind_duplicated</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># filter the mapping to those Entrez gene IDs appearing repeatedly</span></span>
+<span><span class="va">duplicated_conversion_entrez</span><span class="op">&lt;-</span><span class="va">bitr_EnsToEntr</span><span class="op">[</span><span class="va">bitr_EnsToEntr</span><span class="op">$</span><span class="va">ENTREZID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">dupl_entrez</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># for illustration purposed: order by the column containing the Entrez gene IDs </span></span>
+<span><span class="va">duplicated_conversion_entrez</span> <span class="op">&lt;-</span> <span class="va">duplicated_conversion_entrez</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">duplicated_conversion_entrez</span><span class="op">$</span><span class="va">ENTREZID</span><span class="op">)</span>, <span class="op">]</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># take a look at conversion pattern: </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">duplicated_conversion_entrez</span>, n <span class="op">=</span> <span class="fl">6</span> <span class="op">)</span></span>
+<span><span class="co">#&gt;              ENSEMBL ENTREZID</span></span>
+<span><span class="co">#&gt; 250  ENSG00000054277    23596</span></span>
+<span><span class="co">#&gt; 5869 ENSG00000203668    23596</span></span>
+<span><span class="co">#&gt; 2940 ENSG00000140543    55070</span></span>
+<span><span class="co">#&gt; 4664 ENSG00000173867    55070</span></span></code></pre></div>
+<p>In the following, we propose three ways to remove these duplicates.</p>
+</div>
+</div>
+<div id="step-4-remove-duplicated-gene-ids" class="section level3" number="4.1.4">
+<h3>
+<span class="header-section-number">4.1.4</span> step 4: Remove duplicated gene IDs<a class="anchor" aria-label="anchor" href="#step-4-remove-duplicated-gene-ids"><i class="fas fa-link"></i></a>
+</h3>
+<p>For the subsequent analysis (whether differential expression analysis or gene set analysis), we need to deal with the duplicated gene IDs and remove them in a suitable way such that only one unique gene expression measurement among the duplicates remains. There is no recommended way to proceed, i.e. no common approach presented in an official scientific publications, but instead several approaches suggested by users in corresponding user platforms. We therefore introduce three approaches to remove the duplicated gene IDs.</p>
+<div id="option-1-keep-the-first-subscript-among-the-duplicates-simplest-approach" class="section level5" number="4.1.4.0.1">
+<h5>
+<span class="header-section-number">4.1.4.0.1</span> option 1: Keep the first subscript among the duplicates (simplest approach)<a class="anchor" aria-label="anchor" href="#option-1-keep-the-first-subscript-among-the-duplicates-simplest-approach"><i class="fas fa-link"></i></a>
+</h5>
+<p>Note that function duplicated() indicates which elements of a vector are duplicates of an element with smaller subscripts. Therefore, the first corresponding element that occurs is not considered a subscript.</p>
+<ol style="list-style-type: decimal">
+<li>Remove duplicated ENTREZ gene IDs</li>
+</ol>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate which Entrez IDs are duplicates of one with a smaller subscript </span></span>
+<span><span class="va">ind_duplicates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">$</span><span class="va">ENTREZID</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter the gene expression data set to those Entrez IDs that are NO duplicates</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl1</span> <span class="op">&lt;-</span> <span class="va">merged_expression_data_filterByExpr</span><span class="op">[</span><span class="op">!</span><span class="va">ind_duplicates</span>,<span class="op">]</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Remove duplicated ENSEMBL gene IDs</li>
+</ol>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate which Ensembl IDs are duplicates of one with a smaller subscript</span></span>
+<span><span class="va">ind_duplicates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl1</span><span class="op">$</span><span class="va">Row.names</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter the gene expression data set to those Ensembl IDs that are NO duplicates</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl1</span><span class="op">&lt;-</span><span class="va">exprdat_filterByExpr_dupl1</span><span class="op">[</span><span class="op">!</span><span class="va">ind_duplicates</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co">#3. set Entrez gene IDs as rownames </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl1</span><span class="op">)</span><span class="op">&lt;-</span><span class="va">exprdat_filterByExpr_dupl1</span><span class="op">$</span><span class="va">ENTREZID</span></span>
+<span></span>
+<span><span class="co">#Remove columns containing ENSEMBL and ENTREZ IDs</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl1</span>, select<span class="op">=</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Row.names</span>,<span class="va">ENTREZID</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># inspect dimension of gene expression data set without duplicates </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   69</span></span></code></pre></div>
+</div>
+<div id="option-2-keep-the-rounded-mean-expression-value-of-all-duplicated-gene-ids-1" class="section level5" number="4.1.4.0.2">
+<h5>
+<span class="header-section-number">4.1.4.0.2</span> option 2: Keep the (rounded) mean expression value of all duplicated gene IDs<a class="anchor" aria-label="anchor" href="#option-2-keep-the-rounded-mean-expression-value-of-all-duplicated-gene-ids-1"><i class="fas fa-link"></i></a>
+</h5>
+<p>In this option, we want to combine the corresponding duplicated gene IDs into one by taking the (rounded) mean count value for each sample. Here, we switch the order in which we remove the duplicates by first addressing duplicated Ensembl IDs and then duplicated Entrez IDs.</p>
+<p>1.Remove duplicated ENTREZ gene IDs, i.e. multiple different ENSEMBL IDs that are mapped to the same single ENTREZ ID (case 2):</p>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># generate empty matrix to contain (rounded) mean expression values of all rows that</span></span>
+<span><span class="co"># have same ENTREZ gene ID</span></span>
+<span><span class="va">mean_entrez</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span>, nrow<span class="op">=</span><span class="fl">0</span>, ncol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">)</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co"># note: we set ncol = ncol(expression_data_filterByExpr)-2 since data set contains 2 columns with IDs at this point for which </span></span>
+<span><span class="co"># we won't calculate any mean value. </span></span>
+<span></span>
+<span></span>
+<span><span class="co"># for each duplicated Entrez gene ID separately, we gather all rows with the corresponding gene expression data</span></span>
+<span><span class="co"># and then extract the (rounded) mean expression value of all rows</span></span>
+<span>    <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span></span>
+<span>      <span class="co">#go through each ENTREZ IDs which occurs multiple times</span></span>
+<span>      <span class="co">#determine all rows whose ENTREZ IDs correspond to currently considered ENTREZ ID</span></span>
+<span>      <span class="va">counts_dupl</span> <span class="op">&lt;-</span> <span class="va">merged_expression_data_filterByExpr</span><span class="op">[</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">$</span><span class="va">ENTREZID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="op">]</span></span>
+<span></span>
+<span>      <span class="co">#compute the mean expression value of all rows that correspond to the given Entrez gene ID</span></span>
+<span>      <span class="va">dupl_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="va">counts_dupl</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="co">#store rounded mean expression value in matrix</span></span>
+<span>      <span class="co"># this matrix is iteratively extended by a single row of gene expression data which corresponds to the</span></span>
+<span>      <span class="co"># (rounded) mean expression data that corresponds to the given Entrez gene ID</span></span>
+<span>      <span class="va">mean_entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">mean_entrez</span>,<span class="va">dupl_id</span><span class="op">)</span></span>
+<span>      </span>
+<span>    <span class="op">}</span></span>
+<span></span>
+<span><span class="co">#set corresponding ENTREZ gene IDs as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">mean_entrez</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># test whether the number of rows in mean_entrez corresponds to the number ENTREZ IDs</span></span>
+<span><span class="co"># that occur more than once</span></span>
+<span><span class="co"># result should be TRUE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">mean_entrez</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span></span>
+<span><span class="co"># remove all rows from the expression data whose ENTREZ ID has at least one duplicate</span></span>
+<span><span class="co"># intuition: we have just dealt with the corresponding rows and do not want them to be considered</span></span>
+<span><span class="co"># in the second step (which deals with case 2)</span></span>
+<span></span>
+<span><span class="va">exprdat_filterByExpr_dupl2</span> <span class="op">&lt;-</span> <span class="va">merged_expression_data_filterByExpr</span><span class="op">[</span><span class="op">!</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">$</span><span class="va">ENTREZID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span>  <span class="va">dupl_entrez</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># test whether the number of rows in the resulting data set equals the number of rows in the initial gene expression data set </span></span>
+<span><span class="co"># minus number of genes with at least one duplicate</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">)</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">duplicated_conversion_entrez</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Inspect the dimension of the resulting gene expression data set with converted gene IDs</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6037   71</span></span></code></pre></div>
+<p>Note that we will add the mean values to the gene expression data set at the end of step 2.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Remove duplicated ENSEMBL IDs</li>
+</ol>
+<ul>
+<li>Caution: Single ENSEMBL IDs that are mapped to multiple ENTREZ ID naturally generate identical count data for all corresponding ENTREZ IDs</li>
+<li>It is therefore pointless to compute the mean expression values</li>
+<li>We therefore proceed as in option 1 and use ENTREZ ID that occurs first and remove the rest</li>
+</ul>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate which Ensembl IDs are duplicated in the gene expression data set</span></span>
+<span><span class="va">ind_duplicates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span><span class="op">$</span><span class="va">Row.names</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter gene expression data set to all Ensembl IDs that are NOT duplicated </span></span>
+<span><span class="va">exprdat_filterByExpr_dupl2</span> <span class="op">&lt;-</span> <span class="va">exprdat_filterByExpr_dupl2</span><span class="op">[</span><span class="op">!</span><span class="va">ind_duplicates</span>,<span class="op">]</span></span>
+<span></span>
+<span></span>
+<span><span class="co">#set ENTREZ IDs as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">exprdat_filterByExpr_dupl2</span><span class="op">$</span><span class="va">ENTREZID</span></span>
+<span><span class="co">#remove any columns containing IDs</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span>,select<span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Row.names</span>,<span class="va">ENTREZID</span><span class="op">)</span><span class="op">)</span></span>
+<span>    </span>
+<span><span class="co">#add rows to data set that contain mean expression values of duplicate ENTREZ IDs (from step 2)</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span>,<span class="va">mean_entrez</span><span class="op">)</span></span>
+<span>    </span>
+<span><span class="co"># Inspect the dimension of the resulting gene expression data set with converted gene IDs</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   69</span></span></code></pre></div>
+</div>
+<div id="option-3-among-the-duplicates-keep-row-with-highest-overall-expression-values" class="section level5" number="4.1.4.0.3">
+<h5>
+<span class="header-section-number">4.1.4.0.3</span> option 3: Among the duplicates, keep row with highest overall expression values<a class="anchor" aria-label="anchor" href="#option-3-among-the-duplicates-keep-row-with-highest-overall-expression-values"><i class="fas fa-link"></i></a>
+</h5>
+<p>In this option, we summarize the gene expression data from the corresponding duplicated gene IDs by detecting the row with the highest counts across all samples. The intuition behind this approach is that the row with the highest counts values has the highest statistical power of being detected as differentially expressed. As in option 2, this is only sensible for duplicates that result from multiple ENSEMBL IDs being mapped to the same ENTREZ ID.</p>
+<ol style="list-style-type: decimal">
+<li>Remove duplicated Entrez IDs</li>
+</ol>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span> <span class="co"># generate empty matrix to later contain row with highest count values among ID duplicates</span></span>
+<span><span class="co"># this data set is to be filled gradually and with each iteration of the follwing for-loop</span></span>
+<span><span class="va">highest_count_entrez</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span>, nrow<span class="op">=</span><span class="fl">0</span>, ncol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">)</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co"># note: we set ncol = ncol(expression_data_filterByExpr)-2 since data set contains 2 columns with IDs at this point for which </span></span>
+<span><span class="co"># we won't calculate any "highest" value. </span></span>
+<span></span>
+<span></span>
+<span><span class="co"># for each duplicated Entrez ID separately, we gather all rows with the corresponding gene expression data</span></span>
+<span><span class="co"># and then extract the row with the highest overall magnitude of counts</span></span>
+<span></span>
+<span>      <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span></span>
+<span>        <span class="co"># go through each ENTREZ IDs which occurs multiple times</span></span>
+<span>        <span class="co"># determine all rows whose ENTREZ IDs correspond to currently considered ENTREZ ID</span></span>
+<span>        <span class="va">counts_dupl</span><span class="op">&lt;-</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">[</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">$</span><span class="va">ENTREZID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="op">]</span></span>
+<span></span>
+<span>        <span class="co"># order rows in decreasing manner by their (added up) number of read counts across all samples</span></span>
+<span>        <span class="va">order_rowsums</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">counts_dupl</span><span class="op">[</span>,<span class="fl">2</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">counts_dupl</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span>        <span class="co">#detect row with highest number of read counts across all samples (i.e. row with rank 1)</span></span>
+<span>        <span class="va">dupl_id</span><span class="op">&lt;-</span><span class="va">counts_dupl</span><span class="op">[</span><span class="va">order_rowsums</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span></span>
+<span>        <span class="co">#store corresponding expression values in the matrix </span></span>
+<span>        <span class="va">highest_count_entrez</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">highest_count_entrez</span>,<span class="va">dupl_id</span><span class="op">)</span></span>
+<span>      <span class="op">}</span></span>
+<span></span>
+<span></span>
+<span><span class="co">#Remove all initial values with ENTREZ duplicates from the initial gene expression data set</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">&lt;-</span><span class="va">merged_expression_data_filterByExpr</span><span class="op">[</span><span class="op">!</span> <span class="va">merged_expression_data_filterByExpr</span><span class="op">$</span><span class="va">ENTREZID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_entrez</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Remove duplicated Ensembl IDs</li>
+</ol>
+<p>Just like in option 2, it is pointless to detect the row with the highest count values as all rows corresponding to the same ENSEMBL ID naturally contain identical count data. We therefore keep the row corresponding to a duplicatd ENSEMBL ID that occurs first.</p>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate duplicated Ensembl IDs </span></span>
+<span><span class="va">ind_duplicates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">$</span><span class="va">Row.names</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter the gene expression data set to those Ensembl IDs that are NOT duplicated </span></span>
+<span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">&lt;-</span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">[</span><span class="op">!</span><span class="va">ind_duplicates</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># add gene expression rows of all Entrez gene IDs that were initially duplicated</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl3</span>, <span class="va">highest_count_entrez</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set ENTREZ IDs as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">)</span><span class="op">&lt;-</span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">$</span><span class="va">ENTREZID</span></span>
+<span><span class="co"># Remove any column that contains information on gene IDs</span></span>
+<span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl3</span>, select<span class="op">=</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Row.names</span>,<span class="va">ENTREZID</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Inspect the dimension of the resulting gene expression data set with converted gene IDs</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_filterByExpr_dupl3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   69</span></span></code></pre></div>
 
+</div>
+</div>
+</div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="gsea-preranking.html"><span class="header-section-number">3</span> GSEA Preranking</a></div>
 <div class="next"><a href="differential-expression-analysis.html"><span class="header-section-number">5</span> Differential Expression Analysis</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#gene-id-duplicate-removals"><span class="header-section-number">4</span> Gene ID Duplicate Removals</a></li></ul>
+      <ul class="nav navbar-nav">
+<li>
+<a class="nav-link" href="#gene-id-duplicate-removals"><span class="header-section-number">4</span> Gene ID Duplicate Removals</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#libraries-2"><span class="header-section-number">4.0.1</span> Libraries</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#gene-id-conversion-for-expression_data_filterbyexpr"><span class="header-section-number">4.1</span> Gene ID conversion for expression_data_filterByExpr</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#step-1-obtain-mapping-from-ensembl-to-entrez-id-format"><span class="header-section-number">4.1.1</span> step 1: Obtain mapping from Ensembl to Entrez ID format</a></li>
+<li><a class="nav-link" href="#step-2-merge-mapping-with-initial-gene-expression-data-set"><span class="header-section-number">4.1.2</span> step 2: Merge mapping with initial gene expression data set</a></li>
+<li><a class="nav-link" href="#step-3-take-a-closer-look-at-the-duplicated-gene-ids"><span class="header-section-number">4.1.3</span> step 3: Take a closer look at the duplicated gene IDs</a></li>
+<li><a class="nav-link" href="#step-4-remove-duplicated-gene-ids"><span class="header-section-number">4.1.4</span> step 4: Remove duplicated gene IDs</a></li>
+</ul>
+</li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-<li><a id="book-source" href="https://github.com/rstudio/bookdown-demo/blob/master/03-geneid-conversion-duplicate-removal.Rmd">View source <i class="fab fa-github"></i></a></li>
-          <li><a id="book-edit" href="https://github.com/rstudio/bookdown-demo/edit/master/03-geneid-conversion-duplicate-removal.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+          
         </ul>
 </div>
     </nav>
@@ -100,7 +499,7 @@ set in the _output.yml file.&lt;/p&gt;">
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-02.</p>
+    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-19.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

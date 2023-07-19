@@ -6,20 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 5 Differential Expression Analysis | RNA Sequencing Guide</title>
 <meta name="author" content="Milena Wünsch and Pat Callahan">
-<meta name="description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta name="description" content="5.1 Overview In this script, we will perform differential expression analysis for each of the three parametric methods: - voom/limma - DESeq2 - edgeR Here, we illustrate this process for two gene...">
 <meta name="generator" content="bookdown 0.34 with bs4_book()">
 <meta property="og:title" content="Chapter 5 Differential Expression Analysis | RNA Sequencing Guide">
 <meta property="og:type" content="book">
-<meta property="og:description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta property="og:description" content="5.1 Overview In this script, we will perform differential expression analysis for each of the three parametric methods: - voom/limma - DESeq2 - edgeR Here, we illustrate this process for two gene...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 5 Differential Expression Analysis | RNA Sequencing Guide">
-<meta name="twitter:description" content="&lt;p&gt;This is a minimal example of using the bookdown package to write a book.
-The HTML output format for this example is bookdown::bs4_book,
-set in the _output.yml file.&lt;/p&gt;">
+<meta name="twitter:description" content="5.1 Overview In this script, we will perform differential expression analysis for each of the three parametric methods: - voom/limma - DESeq2 - edgeR Here, we illustrate this process for two gene...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -64,11 +58,11 @@ set in the _output.yml file.&lt;/p&gt;">
 <li class="book-part">With Gene ID Conversion</li>
 <li><a class="" href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">11</span> Cluster Profiler: GSEA KEGG</a></li>
 <li><a class="" href="cluster-profiler-ora.html"><span class="header-section-number">12</span> Cluster Profiler: ORA</a></li>
-<li><a class="" href="padog-1.html"><span class="header-section-number">13</span> PADOG</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">13</span> PADOG</a></li>
 </ul>
 
         <div class="book-extra">
-          <p><a id="book-repo" href="https://github.com/rstudio/bookdown-demo">View book source <i class="fab fa-github"></i></a></p>
+          
         </div>
       </nav>
 </div>
@@ -76,19 +70,493 @@ set in the _output.yml file.&lt;/p&gt;">
 <h1>
 <span class="header-section-number">5</span> Differential Expression Analysis<a class="anchor" aria-label="anchor" href="#differential-expression-analysis"><i class="fas fa-link"></i></a>
 </h1>
+<div id="overview" class="section level2" number="5.1">
+<h2>
+<span class="header-section-number">5.1</span> Overview<a class="anchor" aria-label="anchor" href="#overview"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this script, we will perform differential expression analysis for each of the three parametric methods:
+- voom/limma
+- DESeq2
+- edgeR</p>
+<p>Here, we illustrate this process for two gene ID format Entrez IDs, while we additionally present the identical process for the format Ensembl ID in the R script “Instructions_Differential_Expression_Analysis.R”.</p>
+<p>Note that at at the end of the illustration for each method, we rename some of the columns in the corresponding results tables to unify them across the different methods. While this step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL, renaming of some columns (such as adjusted p-value) is necessary in this context so that we can use the same code to illustrate further conduct of GSA in the following R scripts, independent of the method for differential expression analysis used.</p>
+</div>
+<div id="libraries-3" class="section level2" number="5.2">
+<h2>
+<span class="header-section-number">5.2</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-3"><i class="fas fa-link"></i></a>
+</h2>
+<div id="install-libraries" class="section level3" number="5.2.1">
+<h3>
+<span class="header-section-number">5.2.1</span> Install Libraries<a class="anchor" aria-label="anchor" href="#install-libraries"><i class="fas fa-link"></i></a>
+</h3>
+<p>All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.</p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"tweeDESeqCountData"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"limma"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"DESeq2"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"edgeR"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"dplyr"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="load-libraries-2" class="section level3" number="5.2.2">
+<h3>
+<span class="header-section-number">5.2.2</span> Load libraries<a class="anchor" aria-label="anchor" href="#load-libraries-2"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.creal.cat/jrgonzalez/software.htm">tweeDEseqCountData</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/limma">limma</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mikelove/DESeq2">DESeq2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/edgeR">edgeR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span></code></pre></div>
+<p>Description of the stats libraries:</p>
+<!-- I removed {dplyr} from the explanations because it's already so well-known -->
+<div id="tweedeseqcountdata" class="section level4" number="5.2.2.1">
+<h4>
+<span class="header-section-number">5.2.2.1</span> tweeDESeqCountData<a class="anchor" aria-label="anchor" href="#tweedeseqcountdata"><i class="fas fa-link"></i></a>
+</h4>
+<p>Info about the package here…</p>
+</div>
+<div id="limma" class="section level4" number="5.2.2.2">
+<h4>
+<span class="header-section-number">5.2.2.2</span> limma<a class="anchor" aria-label="anchor" href="#limma"><i class="fas fa-link"></i></a>
+</h4>
+</div>
+<div id="deseq2" class="section level4" number="5.2.2.3">
+<h4>
+<span class="header-section-number">5.2.2.3</span> DESeq2<a class="anchor" aria-label="anchor" href="#deseq2"><i class="fas fa-link"></i></a>
+</h4>
+</div>
+<div id="edger" class="section level4" number="5.2.2.4">
+<h4>
+<span class="header-section-number">5.2.2.4</span> edgeR<a class="anchor" aria-label="anchor" href="#edger"><i class="fas fa-link"></i></a>
+</h4>
+</div>
+</div>
+<div id="load-data-1" class="section level3" number="5.2.3">
+<h3>
+<span class="header-section-number">5.2.3</span> Load data<a class="anchor" aria-label="anchor" href="#load-data-1"><i class="fas fa-link"></i></a>
+</h3>
+<p>Note that depending on the method for differential expression analysis, different methods for pre-filtering are proposed:</p>
+<ul>
+<li>voom/limma and egdeR: pre-filtering using edgeR’s built-in function filterByExpr()</li>
+<li>DESeq2: manual/simple pre-filtering</li>
+</ul>
+<p>We therefore work with both pre-filtered gene expression data sets generated in “Instructions_PreFiltering”:</p>
+<div id="previously-generated" class="section level4" number="5.2.3.1">
+<h4>
+<span class="header-section-number">5.2.3.1</span> Previously Generated<a class="anchor" aria-label="anchor" href="#previously-generated"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># data is not yet in the folder. set to eval=FALSE for now</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_DESeq2.Rdata"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_filterByExpr.Rdata"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="pickrell-sample-data" class="section level4" number="5.2.3.2">
+<h4>
+<span class="header-section-number">5.2.3.2</span> {pickrell} Sample Data<a class="anchor" aria-label="anchor" href="#pickrell-sample-data"><i class="fas fa-link"></i></a>
+</h4>
+<p>Obtain the sample conditions (i.e. phenotypes) of pickrell data set and store them in object “sample_conditions”:</p>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load pickrell data set </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">pickrell</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># the conditions/phenotypes of the samples can be addressed with the following syntax: </span></span>
+<span><span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span></span>
+<span><span class="co">#&gt;  [1] male   male   female male   female male   female male  </span></span>
+<span><span class="co">#&gt;  [9] female male   female male   female male   female male  </span></span>
+<span><span class="co">#&gt; [17] female female male   female male   female female male  </span></span>
+<span><span class="co">#&gt; [25] female male   female female male   female female male  </span></span>
+<span><span class="co">#&gt; [33] female male   female female female female male   female</span></span>
+<span><span class="co">#&gt; [41] male   male   female female male   female female male  </span></span>
+<span><span class="co">#&gt; [49] female female male   female male   male   female female</span></span>
+<span><span class="co">#&gt; [57] male   female male   female male   female female male  </span></span>
+<span><span class="co">#&gt; [65] female female female male   female</span></span>
+<span><span class="co">#&gt; Levels: female male</span></span>
+<span></span>
+<span><span class="co"># store sample conditions </span></span>
+<span><span class="va">sample_conditions</span> <span class="op">&lt;-</span> <span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="differential-expression-analysis-with-entrez-gene-id" class="section level2" number="5.3">
+<h2>
+<span class="header-section-number">5.3</span> Differential Expression Analysis (with Entrez gene ID)<a class="anchor" aria-label="anchor" href="#differential-expression-analysis-with-entrez-gene-id"><i class="fas fa-link"></i></a>
+</h2>
+<p>(Provide brief description of the options here so people know which one to jump to)</p>
+<div id="option-1-differential-expression-analysis-using-limma-1" class="section level3" number="5.3.1">
+<h3>
+<span class="header-section-number">5.3.1</span> Option 1: Differential expression analysis using limma<a class="anchor" aria-label="anchor" href="#option-1-differential-expression-analysis-using-limma-1"><i class="fas fa-link"></i></a>
+</h3>
+<div id="step-1-generate-required-input-object" class="section level4" number="5.3.1.1">
+<h4>
+<span class="header-section-number">5.3.1.1</span> step 1: Generate required input object<a class="anchor" aria-label="anchor" href="#step-1-generate-required-input-object"><i class="fas fa-link"></i></a>
+</h4>
+<p>As described in “Instructions_Differential_Expression_Analysis.R”, the gene expression data set exprdat_filter_conv_filterByExpr is
+a data frame and needs to be converted to a DGEList object.</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># store expression data with corresponding sample conditions in object of class DGEList</span></span>
+<span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/DGEList.html">DGEList</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">exprdat_filter_conv_filterByExpr</span>, </span>
+<span>              group <span class="op">=</span> <span class="va">sample_conditions</span><span class="op">)</span></span></code></pre></div>
+<p>required function arguments:</p>
+<ul>
+<li>counts: matrix that contains RNA-Seq data (i.e. count data)</li>
+</ul>
+<p>optional function arguments:</p>
+<ul>
+<li>group: indicates condition of each sample/library. This argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point</li>
+</ul>
+<p>Note: we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions.</p>
+</div>
+<div id="step-2-normalization" class="section level4" number="5.3.1.2">
+<h4>
+<span class="header-section-number">5.3.1.2</span> step 2: Normalization<a class="anchor" aria-label="anchor" href="#step-2-normalization"><i class="fas fa-link"></i></a>
+</h4>
+<p>The following piece of code generates a normalization factor for each sample which accounts for sample-specific effect (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples.</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/calcNormFactors.html">calcNormFactors</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<p>Note that this function does not transform the count data, but rather generates a normalization factor for each sample which is separately incorporated into the subsequent analysis.</p>
+</div>
+<div id="step-3-voom-transformation" class="section level4" number="5.3.1.3">
+<h4>
+<span class="header-section-number">5.3.1.3</span> step 3: voom transformation<a class="anchor" aria-label="anchor" href="#step-3-voom-transformation"><i class="fas fa-link"></i></a>
+</h4>
+<p>Perform the voom transformation to make limma, which was initially developed for microarray measurements, available to RNA-Seq data. voom transforms the RNA-Seq data to log counts-per-million and generates a precision weight for each entry in the gene expression data sets to be incorporated into the limma pipeline.</p>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># (i) generate design matrix (rows correspond to samples, columns indicate which coefficients are to be estimated)</span></span>
+<span><span class="va">design_matrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html">model.matrix</a></span><span class="op">(</span> <span class="op">~</span> <span class="va">sample_conditions</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># (ii) voom transformation </span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/voom.html">voom</a></span><span class="op">(</span><span class="va">y</span>, design <span class="op">=</span> <span class="va">design_matrix</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="step-4-differential-expression-analysis" class="section level4" number="5.3.1.4">
+<h4>
+<span class="header-section-number">5.3.1.4</span> step 4: Differential expression analysis<a class="anchor" aria-label="anchor" href="#step-4-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># (i) fit a linear model for each gene</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/lmFit.html">lmFit</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># (ii) calculate the statistics for the assessment of differential expression </span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/ebayes.html">eBayes</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># (iii) Get the result table for each gene whose differential expression was assessed </span></span>
+<span><span class="va">DE_results_limma_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/toptable.html">topTable</a></span><span class="op">(</span><span class="va">y</span>, number <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Removing intercept from test coefficients</span></span>
+<span><span class="co"># number = nrow(y) ensures that all genes are displayed in results</span></span></code></pre></div>
+</div>
+<div id="step-5-rename-columns-in-results-of-differential-expression-analysis" class="section level4" number="5.3.1.5">
+<h4>
+<span class="header-section-number">5.3.1.5</span> step 5: Rename columns in results of differential expression analysis<a class="anchor" aria-label="anchor" href="#step-5-rename-columns-in-results-of-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<p>We rename some of the columns in the results table to unify them across the different methods for differential expression analysis. For this, we use the function rename() provided by the library dplyr.</p>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># first, we transform the results table to a data frame so that we see the results</span></span>
+<span><span class="co"># table directly when accessing it through the name "res"</span></span>
+<span><span class="va">DE_results_limma_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_limma_Entrez</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># rename column that contains adjusted p-values: rename padj to p_adj</span></span>
+<span><span class="va">DE_results_limma_Entrez</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="va">DE_results_limma_Entrez</span>, p_adj <span class="op">=</span> <span class="st">"adj.P.Val"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># take a look at the results table: </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_limma_Entrez</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="co">#&gt;             logFC   AveExpr         t      P.Value</span></span>
+<span><span class="co">#&gt; 6192    9.2105431 1.9863048 47.186499 1.020114e-55</span></span>
+<span><span class="co">#&gt; 9087    5.0806396 0.5128935 26.668835 6.058859e-39</span></span>
+<span><span class="co">#&gt; 8228   -0.9240302 5.3334193 -8.779270 5.579187e-13</span></span>
+<span><span class="co">#&gt; 8226   -0.8544468 2.1626976 -4.415343 3.497072e-05</span></span>
+<span><span class="co">#&gt; 159013 -0.5508457 3.7163074 -4.251355 6.307821e-05</span></span>
+<span><span class="co">#&gt; 55787  -0.4042722 5.1160616 -4.045191 1.302619e-04</span></span>
+<span><span class="co">#&gt; 50486  -1.4703261 5.1922528 -3.855673 2.493894e-04</span></span>
+<span><span class="co">#&gt; 3725   -0.5880074 8.2731003 -3.920361 2.001855e-04</span></span>
+<span><span class="co">#&gt; 317     0.4046249 5.9681588  3.822268 2.791390e-04</span></span>
+<span><span class="co">#&gt; 3552   -1.4855077 3.5435981 -3.666767 4.682471e-04</span></span>
+<span><span class="co">#&gt; 284486 -1.0824842 1.6291231 -3.567807 6.466165e-04</span></span>
+<span><span class="co">#&gt; 4092   -0.3090285 7.2622871 -3.660091 4.786317e-04</span></span>
+<span><span class="co">#&gt; 63933  -0.3410894 5.3603234 -3.587703 6.062388e-04</span></span>
+<span><span class="co">#&gt; 2275   -0.6200465 3.3046963 -3.481030 8.544975e-04</span></span>
+<span><span class="co">#&gt; 9404    0.3288050 9.5202902  3.575849 6.299981e-04</span></span>
+<span><span class="co">#&gt; 9697    0.4792856 7.6786140  3.549883 6.851673e-04</span></span>
+<span><span class="co">#&gt; 10732  -0.5086504 5.5892686 -3.492114 8.247942e-04</span></span>
+<span><span class="co">#&gt; 4214    0.5165346 4.7408391  3.445856 9.556092e-04</span></span>
+<span><span class="co">#&gt; 63894   0.1859711 7.0457057  3.483087 8.489115e-04</span></span>
+<span><span class="co">#&gt; 857    -0.9967185 2.0665254 -3.262960 1.690566e-03</span></span>
+<span><span class="co">#&gt;               p_adj           B</span></span>
+<span><span class="co">#&gt; 6192   6.133944e-52 84.20170055</span></span>
+<span><span class="co">#&gt; 9087   1.821596e-35 62.68255252</span></span>
+<span><span class="co">#&gt; 8228   1.118255e-09 19.22260877</span></span>
+<span><span class="co">#&gt; 8226   5.256973e-02  2.15126317</span></span>
+<span><span class="co">#&gt; 159013 7.585786e-02  1.55871370</span></span>
+<span><span class="co">#&gt; 55787  1.305441e-01  0.74145045</span></span>
+<span><span class="co">#&gt; 50486  1.864959e-01  0.15615850</span></span>
+<span><span class="co">#&gt; 3725   1.719594e-01  0.11995311</span></span>
+<span><span class="co">#&gt; 317    1.864959e-01 -0.07537785</span></span>
+<span><span class="co">#&gt; 3552   2.616375e-01 -0.24387530</span></span>
+<span><span class="co">#&gt; 284486 2.746607e-01 -0.43082603</span></span>
+<span><span class="co">#&gt; 4092   2.616375e-01 -0.66791157</span></span>
+<span><span class="co">#&gt; 63933  2.746607e-01 -0.72462491</span></span>
+<span><span class="co">#&gt; 2275   2.831770e-01 -0.79305058</span></span>
+<span><span class="co">#&gt; 9404   2.746607e-01 -0.97053199</span></span>
+<span><span class="co">#&gt; 9697   2.746607e-01 -1.02933463</span></span>
+<span><span class="co">#&gt; 10732  2.831770e-01 -1.03194804</span></span>
+<span><span class="co">#&gt; 4214   2.831770e-01 -1.09133522</span></span>
+<span><span class="co">#&gt; 63894  2.831770e-01 -1.19771238</span></span>
+<span><span class="co">#&gt; 857    3.428077e-01 -1.28178906</span></span></code></pre></div>
+</div>
+</div>
+<div id="option-2-differential-expression-analysis-using-deseq2-1" class="section level3" number="5.3.2">
+<h3>
+<span class="header-section-number">5.3.2</span> option 2: Differential expression analysis using DESeq2<a class="anchor" aria-label="anchor" href="#option-2-differential-expression-analysis-using-deseq2-1"><i class="fas fa-link"></i></a>
+</h3>
+<div id="step-1-generate-object-required-by-deseq2" class="section level4" number="5.3.2.1">
+<h4>
+<span class="header-section-number">5.3.2.1</span> step 1: Generate object required by DESeq2<a class="anchor" aria-label="anchor" href="#step-1-generate-object-required-by-deseq2"><i class="fas fa-link"></i></a>
+</h4>
+<p>DESeq2 operates on the format DESeqDataSet which contains information on the count data, the conditions of the samples and the design. Note that for gene expression data sets that must be imported to R, additional steps are necessary before the following code can be run.</p>
+<div id="generate-a-data-frame-which-contains-the-condition-of-each-sample-1" class="section level5" number="5.3.2.1.1">
+<h5>
+<span class="header-section-number">5.3.2.1.1</span> Generate a data frame which contains the condition of each sample<a class="anchor" aria-label="anchor" href="#generate-a-data-frame-which-contains-the-condition-of-each-sample-1"><i class="fas fa-link"></i></a>
+</h5>
+<p>Here, the information on the sample conditions is the only column in the data frame. However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata.</p>
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># the names of the samples are stored as the row names of the data frame</span></span>
+<span><span class="co"># -&gt; important: make sure that the order of the conditions in sample_conditions corresponds to the order of the </span></span>
+<span><span class="co"># samples in expression_data</span></span>
+<span><span class="va">coldata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">sample_conditions</span>, </span>
+<span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">exprdat_filter_conv_DESeq2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># rename the column header to "condition" </span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"condition"</span></span>
+<span></span>
+<span><span class="co"># recode the variable condition as a factor </span></span>
+<span><span class="co"># rename the sample conditions (in this case from "female" and "male") to "untreated" and "treated"</span></span>
+<span><span class="co"># note: make sure that the control level in variable condition is coded as the first level (i.e. "untreated")</span></span>
+<span><span class="va">coldata</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">$</span><span class="va">condition</span>, </span>
+<span>                            labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"untreated"</span>,<span class="st">"treated"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="generate-the-deseqdataset-1" class="section level5" number="5.3.2.1.2">
+<h5>
+<span class="header-section-number">5.3.2.1.2</span> Generate the DESeqDataSet<a class="anchor" aria-label="anchor" href="#generate-the-deseqdataset-1"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dds_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeqDataSet.html">DESeqDataSetFromMatrix</a></span><span class="op">(</span>countData <span class="op">=</span> <span class="va">exprdat_filter_conv_DESeq2</span>, </span>
+<span>                                     colData <span class="op">=</span> <span class="va">coldata</span>, </span>
+<span>                                     design <span class="op">=</span> <span class="op">~</span><span class="va">condition</span><span class="op">)</span></span></code></pre></div>
+<p>Relevant arguments in function DESeqDataSetFromMatrix:</p>
+<ul>
+<li><p>countData: count data from the gene expression data set</p></li>
+<li><p>colData: data frame that contains information on the samples (see above) such as the conditions of the samples (required) and possibly further variables to correct for (such as batch effects)</p></li>
+<li><p>design: indicates which variables from colData are used for modelling</p></li>
+<li><p>-&gt; more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model</p></li>
+<li><p>-&gt; if more than one variable from colData are used in argument design (e.g. a second variable “batch”), the syntax changes to the following formula: design ~ batch + condition</p></li>
+<li><p>make sure that the variable of interest (here: variable that represents conditions of the samples) is placed at the end of the formula</p></li>
+</ul>
+</div>
+</div>
+<div id="step-2-differential-expression-analysis" class="section level4" number="5.3.2.2">
+<h4>
+<span class="header-section-number">5.3.2.2</span> step 2: Differential expression analysis<a class="anchor" aria-label="anchor" href="#step-2-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<p>DESeq2 calculates the normalization factor of each sample, estimates the dispersion parameter, fits a negative binomial model. A p-value of differential expression for each gene is then computed using a Wald test.</p>
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># perform default differential expression analysis </span></span>
+<span><span class="va">dds_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeq.html">DESeq</a></span><span class="op">(</span><span class="va">dds_Entrez</span><span class="op">)</span></span>
+<span><span class="co">#&gt; estimating size factors</span></span>
+<span><span class="co">#&gt; estimating dispersions</span></span>
+<span><span class="co">#&gt; gene-wise dispersion estimates</span></span>
+<span><span class="co">#&gt; mean-dispersion relationship</span></span>
+<span><span class="co">#&gt; final dispersion estimates</span></span>
+<span><span class="co">#&gt; fitting model and testing</span></span>
+<span><span class="co">#&gt; -- replacing outliers and refitting for 117 genes</span></span>
+<span><span class="co">#&gt; -- DESeq argument 'minReplicatesForReplace' = 7 </span></span>
+<span><span class="co">#&gt; -- original counts are preserved in counts(dds)</span></span>
+<span><span class="co">#&gt; estimating dispersions</span></span>
+<span><span class="co">#&gt; fitting model and testing</span></span>
+<span></span>
+<span><span class="co"># generate results table which provides</span></span>
+<span><span class="va">DE_results_DESeq2_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/results.html">results</a></span><span class="op">(</span><span class="va">dds_Entrez</span><span class="op">)</span></span></code></pre></div>
+<p>Note: function results() provided the base mean across all samples, the estimated log2 fold changes, standard errors, test statistics, p-values, and adjusted p-values for each gene.</p>
+</div>
+<div id="step-3-rename-columns-in-results-of-differential-expression-analysis" class="section level4" number="5.3.2.3">
+<h4>
+<span class="header-section-number">5.3.2.3</span> step 3: Rename columns in results of differential expression analysis<a class="anchor" aria-label="anchor" href="#step-3-rename-columns-in-results-of-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># first, we transform to results table to a data frame so that we see the results</span></span>
+<span><span class="co"># table directly when accessing it through the name "res"</span></span>
+<span><span class="va">DE_results_DESeq2_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_DESeq2_Entrez</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># rename column that contains adjusted p-values: rename padj to p_adj</span></span>
+<span><span class="va">DE_results_DESeq2_Entrez</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="va">DE_results_DESeq2_Entrez</span>, p_adj <span class="op">=</span> <span class="va">padj</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># take a look at the results table</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_DESeq2_Entrez</span>, n <span class="op">=</span> <span class="fl">20</span> <span class="op">)</span></span>
+<span><span class="co">#&gt;           baseMean log2FoldChange      lfcSE         stat</span></span>
+<span><span class="co">#&gt; 8813    62.7268709   0.0394347840 0.11345444  0.347582551</span></span>
+<span><span class="co">#&gt; 57147   70.4533427   0.0285330645 0.11131002  0.256338685</span></span>
+<span><span class="co">#&gt; 55732   13.0010604   0.1641173646 0.15102073  1.086720805</span></span>
+<span><span class="co">#&gt; 2268    43.5777559   0.1137118045 0.19545410  0.581782664</span></span>
+<span><span class="co">#&gt; 2519    37.9639983  -0.0065270645 0.10803176 -0.060418014</span></span>
+<span><span class="co">#&gt; 4800   228.4783293   0.0511474400 0.09641906  0.530470243</span></span>
+<span><span class="co">#&gt; 81887   11.5340315   0.0251919133 0.18501229  0.136163455</span></span>
+<span><span class="co">#&gt; 22875  175.8335262   0.2999994619 0.16347952  1.835088963</span></span>
+<span><span class="co">#&gt; 5893     4.6883080   0.2804257542 0.19291917  1.453591975</span></span>
+<span><span class="co">#&gt; 572     66.3699746  -0.2648964238 0.10233495 -2.588523618</span></span>
+<span><span class="co">#&gt; 9957    10.1224447  -0.1994929894 0.31663473 -0.630041397</span></span>
+<span><span class="co">#&gt; 51384    3.4400718  -0.4871178913 0.50088873 -0.972507196</span></span>
+<span><span class="co">#&gt; 3927   158.4286342   0.1552048117 0.18239266  0.850937829</span></span>
+<span><span class="co">#&gt; 29916  843.8205108   0.0009164434 0.11692479  0.007837888</span></span>
+<span><span class="co">#&gt; 4074  1015.3676532   0.0204941689 0.08518719  0.240578061</span></span>
+<span><span class="co">#&gt; 90293    0.7530882  -0.1378597175 0.75449224 -0.182718537</span></span>
+<span><span class="co">#&gt; 79007  924.7932944  -0.4977855669 0.26299623 -1.892747927</span></span>
+<span><span class="co">#&gt; 6542     0.4013411   0.4437578747 0.73930371  0.600237584</span></span>
+<span><span class="co">#&gt; 952      5.5336896   0.2786075955 0.32467188  0.858120507</span></span>
+<span><span class="co">#&gt; 2288   609.7373992  -0.0974512098 0.11711125 -0.832125125</span></span>
+<span><span class="co">#&gt;            pvalue     p_adj</span></span>
+<span><span class="co">#&gt; 8813  0.728153713 0.9313348</span></span>
+<span><span class="co">#&gt; 57147 0.797689329 0.9506228</span></span>
+<span><span class="co">#&gt; 55732 0.277160217 0.7502690</span></span>
+<span><span class="co">#&gt; 2268  0.560713083 0.8849136</span></span>
+<span><span class="co">#&gt; 2519  0.951822712 0.9884098</span></span>
+<span><span class="co">#&gt; 4800  0.595785935 0.8982377</span></span>
+<span><span class="co">#&gt; 81887 0.891692065 0.9763145</span></span>
+<span><span class="co">#&gt; 22875 0.066492509 0.5209390</span></span>
+<span><span class="co">#&gt; 5893  0.146059463 0.6396912</span></span>
+<span><span class="co">#&gt; 572   0.009638834 0.3141234</span></span>
+<span><span class="co">#&gt; 9957  0.528667500 0.8707508</span></span>
+<span><span class="co">#&gt; 51384 0.330798286 0.7871383</span></span>
+<span><span class="co">#&gt; 3927  0.394803890 0.8165289</span></span>
+<span><span class="co">#&gt; 29916 0.993746334 0.9984058</span></span>
+<span><span class="co">#&gt; 4074  0.809882155 0.9537648</span></span>
+<span><span class="co">#&gt; 90293 0.855018870 0.9662640</span></span>
+<span><span class="co">#&gt; 79007 0.058391399 0.4994559</span></span>
+<span><span class="co">#&gt; 6542  0.548347909 0.8785679</span></span>
+<span><span class="co">#&gt; 952   0.390825925 0.8152442</span></span>
+<span><span class="co">#&gt; 2288  0.405338321 0.8212059</span></span></code></pre></div>
+</div>
+</div>
+<div id="option-3-differential-expression-analysis-using-edger-1" class="section level3" number="5.3.3">
+<h3>
+<span class="header-section-number">5.3.3</span> option 3: Differential expression analysis using edgeR<a class="anchor" aria-label="anchor" href="#option-3-differential-expression-analysis-using-edger-1"><i class="fas fa-link"></i></a>
+</h3>
+<div id="step-1-generate-required-input-object-1" class="section level4" number="5.3.3.1">
+<h4>
+<span class="header-section-number">5.3.3.1</span> step 1: generate required input object<a class="anchor" aria-label="anchor" href="#step-1-generate-required-input-object-1"><i class="fas fa-link"></i></a>
+</h4>
+<p>Note that edgeR operates on a DGEList object</p>
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/DGEList.html">DGEList</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">exprdat_filter_conv_filterByExpr</span>, </span>
+<span>             group <span class="op">=</span> <span class="va">sample_conditions</span><span class="op">)</span></span></code></pre></div>
+<p>Required function arguments:</p>
+<ul>
+<li>counts: matrix that contains RNA-Seq data (i.e. count data)</li>
+</ul>
+<p>Optional function arguments:</p>
+<ul>
+<li>group: indicates condition of each sample/library</li>
+<li>-&gt; this argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point</li>
+</ul>
+<p>Note thta we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions.</p>
+</div>
+<div id="step-2-normalization-1" class="section level4" number="5.3.3.2">
+<h4>
+<span class="header-section-number">5.3.3.2</span> step 2: Normalization<a class="anchor" aria-label="anchor" href="#step-2-normalization-1"><i class="fas fa-link"></i></a>
+</h4>
+<p>The following piece of code generates a normalization factor for each sample. This accounts for sample-specific effect (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples.</p>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/calcNormFactors.html">calcNormFactors</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<p>Note that this function does not transform the count data, but rather generates a normalization factor for each sample which is incorporated into the subsequent analysis separately.</p>
+</div>
+<div id="step-3-estimation-of-dispersion" class="section level4" number="5.3.3.3">
+<h4>
+<span class="header-section-number">5.3.3.3</span> step 3: Estimation of dispersion<a class="anchor" aria-label="anchor" href="#step-3-estimation-of-dispersion"><i class="fas fa-link"></i></a>
+</h4>
+<p>The following code estimates common and tagwise dispersion, namely the variation of the true abundance of a given gene between different samples. This is required to assess differential expression realistically.</p>
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/estimateDisp.html">estimateDisp</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Using classic mode.</span></span></code></pre></div>
+</div>
+<div id="step-4-test-for-differential-expression" class="section level4" number="5.3.3.4">
+<h4>
+<span class="header-section-number">5.3.3.4</span> step 4: Test for differential expression<a class="anchor" aria-label="anchor" href="#step-4-test-for-differential-expression"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># test each gene for differential expression: </span></span>
+<span><span class="va">DE_results_edgeR_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/exactTest.html">exactTest</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># extract pre-specified (n) number of genes</span></span>
+<span><span class="va">DE_results_edgeR_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/topTags.html">topTags</a></span><span class="op">(</span><span class="va">DE_results_edgeR_Entrez</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">DE_results_edgeR_Entrez</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Note that argument n specifies the number of top differentially expressed genes to be displayed in the results. Setting it to n = nrow(DE_results_Entrez) ensures the results of all genes whose differential expression was assessed are displayed.</p>
+</div>
+<div id="step-5-rename-columns-in-the-results-of-differential-expression-analysis" class="section level4" number="5.3.3.5">
+<h4>
+<span class="header-section-number">5.3.3.5</span> step 5: Rename columns in the results of differential expression analysis<a class="anchor" aria-label="anchor" href="#step-5-rename-columns-in-the-results-of-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># first, we transform the results table to a data frame so that we see the results</span></span>
+<span><span class="co"># table directly when accessing it through the name "res"</span></span>
+<span><span class="va">DE_results_edgeR_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_edgeR_Entrez</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># rename column that contains adjusted p-values: rename padj to p_adj</span></span>
+<span><span class="va">DE_results_edgeR_Entrez</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="va">DE_results_edgeR_Entrez</span>, p_adj <span class="op">=</span> <span class="va">FDR</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># take a look at the results table</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_edgeR_Entrez</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                logFC   logCPM        PValue         p_adj</span></span>
+<span><span class="co">#&gt; 6192      10.1330599 6.154999  0.000000e+00  0.000000e+00</span></span>
+<span><span class="co">#&gt; 9087       5.5791707 2.519656 6.188598e-121 1.860602e-117</span></span>
+<span><span class="co">#&gt; 8228      -0.9448255 5.485319  1.821705e-17  3.651303e-14</span></span>
+<span><span class="co">#&gt; 8226      -0.7768228 2.571002  3.067361e-06  4.611011e-03</span></span>
+<span><span class="co">#&gt; 6615      -1.6460041 3.288135  4.698096e-06  5.627893e-03</span></span>
+<span><span class="co">#&gt; 10912     -1.5870378 2.679647  5.615726e-06  5.627893e-03</span></span>
+<span><span class="co">#&gt; 284486    -1.1257052 2.302952  1.949732e-05  1.674820e-02</span></span>
+<span><span class="co">#&gt; 1521       1.5019085 3.365855  2.906843e-05  2.184856e-02</span></span>
+<span><span class="co">#&gt; 55787     -0.4253221 5.207647  3.522694e-05  2.269295e-02</span></span>
+<span><span class="co">#&gt; 10732     -0.6028374 5.756558  3.773981e-05  2.269295e-02</span></span>
+<span><span class="co">#&gt; 100191040 -1.1506301 3.121643  4.727503e-05  2.584225e-02</span></span>
+<span><span class="co">#&gt; 412       -0.7312091 6.861545  1.064460e-04  5.333830e-02</span></span>
+<span><span class="co">#&gt; 159013    -0.5219775 3.911283  1.225919e-04  5.670349e-02</span></span>
+<span><span class="co">#&gt; 317        0.4048454 6.062183  2.164067e-04  9.294666e-02</span></span>
+<span><span class="co">#&gt; 51655     -1.3164084 3.094734  2.570863e-04  1.003474e-01</span></span>
+<span><span class="co">#&gt; 6662      -0.9774711 8.100796  2.804477e-04  1.003474e-01</span></span>
+<span><span class="co">#&gt; 9404       0.3361246 9.579044  2.837030e-04  1.003474e-01</span></span>
+<span><span class="co">#&gt; 171177    -0.6747490 6.350249  3.161790e-04  1.031954e-01</span></span>
+<span><span class="co">#&gt; 10479      0.3635303 6.142157  3.320976e-04  1.031954e-01</span></span>
+<span><span class="co">#&gt; 3725      -0.5320863 8.429198  3.593785e-04  1.031954e-01</span></span></code></pre></div>
 
+</div>
+</div>
+</div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="gene-id-duplicate-removals.html"><span class="header-section-number">4</span> Gene ID Duplicate Removals</a></div>
 <div class="next"><a href="rna-seq-transformation.html"><span class="header-section-number">6</span> RNA-Seq Transformation</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#differential-expression-analysis"><span class="header-section-number">5</span> Differential Expression Analysis</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#differential-expression-analysis"><span class="header-section-number">5</span> Differential Expression Analysis</a></li>
+<li><a class="nav-link" href="#overview"><span class="header-section-number">5.1</span> Overview</a></li>
+<li>
+<a class="nav-link" href="#libraries-3"><span class="header-section-number">5.2</span> Libraries</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#install-libraries"><span class="header-section-number">5.2.1</span> Install Libraries</a></li>
+<li><a class="nav-link" href="#load-libraries-2"><span class="header-section-number">5.2.2</span> Load libraries</a></li>
+<li><a class="nav-link" href="#load-data-1"><span class="header-section-number">5.2.3</span> Load data</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#differential-expression-analysis-with-entrez-gene-id"><span class="header-section-number">5.3</span> Differential Expression Analysis (with Entrez gene ID)</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#option-1-differential-expression-analysis-using-limma-1"><span class="header-section-number">5.3.1</span> Option 1: Differential expression analysis using limma</a></li>
+<li><a class="nav-link" href="#option-2-differential-expression-analysis-using-deseq2-1"><span class="header-section-number">5.3.2</span> option 2: Differential expression analysis using DESeq2</a></li>
+<li><a class="nav-link" href="#option-3-differential-expression-analysis-using-edger-1"><span class="header-section-number">5.3.3</span> option 3: Differential expression analysis using edgeR</a></li>
+</ul>
+</li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-<li><a id="book-source" href="https://github.com/rstudio/bookdown-demo/blob/master/04-diff-expression-analysis.Rmd">View source <i class="fab fa-github"></i></a></li>
-          <li><a id="book-edit" href="https://github.com/rstudio/bookdown-demo/edit/master/04-diff-expression-analysis.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+          
         </ul>
 </div>
     </nav>
@@ -100,7 +568,7 @@ set in the _output.yml file.&lt;/p&gt;">
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-02.</p>
+    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-19.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

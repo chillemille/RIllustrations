@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 3 GSEA Preranking | RNA Sequencing Guide</title>
 <meta name="author" content="Milena Wünsch and Pat Callahan">
-<meta name="description" content="Skip to Chapter 4 Differentiaon Expression Analysis if conversion of gene IDs is not needed.">
+<meta name="description" content="Skip to Chapter 4 Differentiation Expression Analysis if conversion of gene IDs is not needed. In this script, we will go through the process of preparing the required input for GSEAPreranked...">
 <meta name="generator" content="bookdown 0.34 with bs4_book()">
 <meta property="og:title" content="Chapter 3 GSEA Preranking | RNA Sequencing Guide">
 <meta property="og:type" content="book">
-<meta property="og:description" content="Skip to Chapter 4 Differentiaon Expression Analysis if conversion of gene IDs is not needed.">
+<meta property="og:description" content="Skip to Chapter 4 Differentiation Expression Analysis if conversion of gene IDs is not needed. In this script, we will go through the process of preparing the required input for GSEAPreranked...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 3 GSEA Preranking | RNA Sequencing Guide">
-<meta name="twitter:description" content="Skip to Chapter 4 Differentiaon Expression Analysis if conversion of gene IDs is not needed.">
+<meta name="twitter:description" content="Skip to Chapter 4 Differentiation Expression Analysis if conversion of gene IDs is not needed. In this script, we will go through the process of preparing the required input for GSEAPreranked...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -58,11 +58,11 @@
 <li class="book-part">With Gene ID Conversion</li>
 <li><a class="" href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">11</span> Cluster Profiler: GSEA KEGG</a></li>
 <li><a class="" href="cluster-profiler-ora.html"><span class="header-section-number">12</span> Cluster Profiler: ORA</a></li>
-<li><a class="" href="padog-1.html"><span class="header-section-number">13</span> PADOG</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">13</span> PADOG</a></li>
 </ul>
 
         <div class="book-extra">
-          <p><a id="book-repo" href="https://github.com/rstudio/bookdown-demo">View book source <i class="fab fa-github"></i></a></p>
+          
         </div>
       </nav>
 </div>
@@ -70,20 +70,1009 @@
 <h1>
 <span class="header-section-number">3</span> GSEA Preranking<a class="anchor" aria-label="anchor" href="#gsea-preranking"><i class="fas fa-link"></i></a>
 </h1>
-<p>Skip to Chapter 4 Differentiaon Expression Analysis if conversion of gene IDs is not needed.</p>
+<p>Skip to Chapter 4 Differentiation Expression Analysis if conversion of gene IDs is not needed.</p>
+<p>In this script, we will go through the process of preparing the required input for GSEAPreranked (which is part of the web-based tool GSEA)<br>
+Note that in contrast to the remaining tools considered in this work, it is recom-
+mended for GSEAPreranked to provide the input with the genes ID HGNC (HUGO) gene
+symbols. The reason for this is described in the supplement of this work.</p>
+<p>Therefore, our starting point is the pre-filtered gene expression data set with the
+gene IDs in the initial (Ensembl) ID format.</p>
+<p>We proceed in the following order:</p>
+<ol style="list-style-type: decimal">
+<li><p>Conversion of the gene IDs to HGNC (HUGO) symbols and removal of resulting duplicated gene IDs</p></li>
+<li><p>Differential expression analysis using voom/limma, DESeq2, and edgeR</p></li>
+<li><p>Generation of the gene ranking from each results table generated in (ii)</p></li>
+<li><p>Export of gene rankings to text file</p></li>
+<li><p>Link to information on how to further process the gene rankings in Excel</p></li>
+</ol>
+<div id="libraries-1" class="section level2" number="3.1">
+<h2>
+<span class="header-section-number">3.1</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"clusterProfiler"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"org.Hs.eg.db"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"tweeDEseqCountData"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"limma"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"edgeR"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"DESeq2"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"dplyr"</span><span class="op">)</span></span></code></pre></div>
+<p>Load libraries:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yulab-smu.top/biomedical-knowledge-mining-book/">clusterProfiler</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">org.Hs.eg.db</span><span class="op">)</span> </span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.creal.cat/jrgonzalez/software.htm">tweeDEseqCountData</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/limma">limma</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/edgeR">edgeR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mikelove/DESeq2">DESeq2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span></code></pre></div>
+<p>Description of the libraries:</p>
+<ul>
+<li><p>clusterProfiler: To convert Ensembl ID format to HGNC (HUGO) gene symbols</p></li>
+<li><p>org.Hs.eg.db: To indicate that we work with human gene expression data (must be adapted when working with a different organism)</p></li>
+<li><p>tweeDEseqCountData: To obtain the conditions of the samples in the gene expression data set</p></li>
+<li><p>limma: For differential expression analysis (based on which the gene ranking is generated)</p></li>
+<li><p>edgeR: For differential expression analysis (based on which the gene ranking is generated)</p></li>
+<li><p>DESeq2: For differential expression analysis (based on which the gene ranking is generated)</p></li>
+<li><p>dplyr: To unify the relevant columns in the results of differential expression analysis across the three methods</p></li>
+</ul>
+<div id="load-data" class="section level3" number="3.1.1">
+<h3>
+<span class="header-section-number">3.1.1</span> Load data<a class="anchor" aria-label="anchor" href="#load-data"><i class="fas fa-link"></i></a>
+</h3>
+<p>We will proceed with the gene expression data set which was pre-filtered using edgeR’s filterByExpr.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_PreFiltering/expression_data_filterByExpr.Rdata"</span><span class="op">)</span></span></code></pre></div>
+<p>Alternatively, you can also load the gene expression data set which was manually pre-filtered (as proposed by DESeq2):</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load("./data/Results_PreFiltering/expression_data_filterDESeq2.Rdata")</span></span></code></pre></div>
+<p>For a simplified readability, we will proceed with the pre-filtered gene expression data set under a different name:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_filtered</span> <span class="op">&lt;-</span> <span class="va">expression_data_filterByExpr</span></span></code></pre></div>
+</div>
+</div>
+<div id="step-1-convert-ensembl-ids-to-hgnc-symbols" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Step 1: Convert Ensembl IDs to HGNC symbols<a class="anchor" aria-label="anchor" href="#step-1-convert-ensembl-ids-to-hgnc-symbols"><i class="fas fa-link"></i></a>
+</h2>
+<div id="i-obtain-the-mapping-of-initial-ensembl-gene-ids-to-required-hgnc-gene-symbols" class="section level4" number="3.2.0.1">
+<h4>
+<span class="header-section-number">3.2.0.1</span> (i) Obtain the mapping of initial (Ensembl) gene IDs to required HGNC gene symbols:<a class="anchor" aria-label="anchor" href="#i-obtain-the-mapping-of-initial-ensembl-gene-ids-to-required-hgnc-gene-symbols"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bitr_EnsToSymb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/clusterProfiler/man/bitr.html">bitr</a></span><span class="op">(</span>geneID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">expression_data_filtered</span><span class="op">)</span>,</span>
+<span>                       fromType <span class="op">=</span> <span class="st">"ENSEMBL"</span>,</span>
+<span>                       toType <span class="op">=</span> <span class="st">"SYMBOL"</span>,</span>
+<span>                       OrgDb <span class="op">=</span> <span class="va">org.Hs.eg.db</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 'select()' returned 1:many mapping between keys and</span></span>
+<span><span class="co">#&gt; columns</span></span>
+<span><span class="co">#&gt; Warning in bitr(geneID =</span></span>
+<span><span class="co">#&gt; rownames(expression_data_filtered), fromType = "ENSEMBL", :</span></span>
+<span><span class="co">#&gt; 3.73% of input gene IDs are fail to map...</span></span></code></pre></div>
+<p>Function arguments:</p>
+<ul>
+<li><p>gene IDs: gene IDs to be converted (stored in the rownames of the gene expression data set)</p></li>
+<li><p>fromType: initial gene ID format that is to be converted</p></li>
+<li><p>toType: gene ID format to be converted to</p></li>
+<li><p>OrgDb: annotation data base of organisms from which the gene expression measurements originate. The corresponding argument must be loaded as a library (see above)</p></li>
+</ul>
+<p>Note that the arguments “fromType” and “toType” must be set as one of the following, depending on the given and the required gene ID format:<br>
+ACCNUM, ALIAS, Ensembl, EnsemblPROT, EnsemblTRANS, ENTREZID, ENZYME, EVIDENCE, EVIDENCEALL, GENENAME, GENETYPE, GO, GOALL, IPI, MAP, OMIM, ONTOLOGY, ONTOLOGYALL, PATH, PFAM, PMID, PROSITE, REFSEQ, SYMBOL, UCSCKG, UNIPROT.</p>
+</div>
+<div id="ii-concatenate-the-initial-gene-expression-data-set-with-the-mapping-from-initial-ensembl-to-required-hgnc-symbols" class="section level4" number="3.2.0.2">
+<h4>
+<span class="header-section-number">3.2.0.2</span> (ii) Concatenate the initial gene expression data set with the mapping from initial (Ensembl) to required HGNC symbols<a class="anchor" aria-label="anchor" href="#ii-concatenate-the-initial-gene-expression-data-set-with-the-mapping-from-initial-ensembl-to-required-hgnc-symbols"><i class="fas fa-link"></i></a>
+</h4>
+<p>Merge by row names of expression data set and ENSEMBL ID of gene ID mapping.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_merged</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Vector-merge.html">merge</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">expression_data_filtered</span>,</span>
+<span>                                             y <span class="op">=</span> <span class="va">bitr_EnsToSymb</span>,</span>
+<span>                                             by.x <span class="op">=</span> <span class="fl">0</span>, </span>
+<span>                                             by.y <span class="op">=</span> <span class="st">"ENSEMBL"</span>,</span>
+<span>                                             sort<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Description of function arguments:</p>
+<ul>
+<li><p>by.x and by.y specify by which columns expression_data_filterByExpr and bitr_EnsToEntr are concatenated:</p></li>
+<li><p>by.x = 0: use row names of expression_data_filterByExpr (the row names contain the gene IDs)</p></li>
+<li><p>by.y = “ENSEMBL”: use the column that contains the Ensembl gene IDs</p></li>
+</ul>
+<p>As we can see from the document “Instructions_GeneID_Conversion_DuplicatesRemoval.R”, we work with three separate ways to remove the duplicate gene IDs that result from
+gene ID conversion. We will apply all three of these approaches to removal.</p>
+</div>
+</div>
+<div id="step-2-remove-the-duplicated-gene-ids" class="section level2" number="3.3">
+<h2>
+<span class="header-section-number">3.3</span> Step 2: Remove the duplicated gene IDs<a class="anchor" aria-label="anchor" href="#step-2-remove-the-duplicated-gene-ids"><i class="fas fa-link"></i></a>
+</h2>
+<div id="i-take-a-closer-look-at-the-duplicates" class="section level3" number="3.3.1">
+<h3>
+<span class="header-section-number">3.3.1</span> (i) Take a closer look at the duplicates<a class="anchor" aria-label="anchor" href="#i-take-a-closer-look-at-the-duplicates"><i class="fas fa-link"></i></a>
+</h3>
+<div id="case-1-single-ensembl-ids-are-mapped-to-multiple-hgnc-symbols" class="section level4" number="3.3.1.1">
+<h4>
+<span class="header-section-number">3.3.1.1</span> Case 1: single ENSEMBL IDs are mapped to multiple HGNC symbols<a class="anchor" aria-label="anchor" href="#case-1-single-ensembl-ids-are-mapped-to-multiple-hgnc-symbols"><i class="fas fa-link"></i></a>
+</h4>
+<p>In this case, we denote the corresponding ENSEMBL IDs as the duplicated IDs</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># obtain number of cases in which an ENSEMBL gene ID was converted to several HGNC symbols, i.e. the number of</span></span>
+<span><span class="co"># times an Ensembl ID appears more than once in the mapping</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">ENSEMBL</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 28</span></span>
+<span><span class="co"># determine all duplicated ENSEMBL gene IDS (i.e. all ENSEMBL gene IDs that were mapped to multiple distinct HGNC gene symbols):</span></span>
+<span><span class="va">dupl_ensembl</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">ENSEMBL</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">ENSEMBL</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># number of ENSEMBL IDs that have at least one duplicate</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_ensembl</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 27</span></span></code></pre></div>
+<p>In the following, we can inspect the conversion pattern for each Ensembl ID that was mapped to multiple distinct HGNC symbols:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># get subset conversion pattern of all duplicated Ensembl IDs </span></span>
+<span><span class="va">duplicated_conversion_ens</span><span class="op">&lt;-</span><span class="va">bitr_EnsToSymb</span><span class="op">[</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">ENSEMBL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">dupl_ensembl</span>,<span class="op">]</span></span>
+<span><span class="co"># take a look at conversion pattern for some of the duplicated Ensembl gene IDs:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">duplicated_conversion_ens</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              ENSEMBL          SYMBOL</span></span>
+<span><span class="co">#&gt; 303  ENSG00000063587          ZNF275</span></span>
+<span><span class="co">#&gt; 304  ENSG00000063587    LOC105373378</span></span>
+<span><span class="co">#&gt; 615  ENSG00000088298           EDEM2</span></span>
+<span><span class="co">#&gt; 616  ENSG00000088298 MMP24-AS1-EDEM2</span></span>
+<span><span class="co">#&gt; 1521 ENSG00000111215            PRH1</span></span>
+<span><span class="co">#&gt; 1522 ENSG00000111215            PRR4</span></span></code></pre></div>
+<p>We can see perfectly that these Ensembl ID are each mapped to multiple individual HGNC symbols.</p>
+</div>
+<div id="case-2-multiple-ensembl-ids-are-mapped-to-the-same-hgnc-symbol" class="section level4" number="3.3.1.2">
+<h4>
+<span class="header-section-number">3.3.1.2</span> CASE 2: multiple ENSEMBL IDs are mapped to the same HGNC symbol<a class="anchor" aria-label="anchor" href="#case-2-multiple-ensembl-ids-are-mapped-to-the-same-hgnc-symbol"><i class="fas fa-link"></i></a>
+</h4>
+<p>In this case, we denote the corresponding HGNC symbols as the duplicated IDs.</p>
+<p>Obtain number of cases in which multiple distinct Ensembl IDs are converted to the same HGNC gene symbol</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># in these cases, the corresponding HGNC symbols appear repeatedly in the mapping:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">SYMBOL</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 2</span></span>
+<span><span class="co"># determine all HGNC gene symbols affected by this duplication</span></span>
+<span><span class="va">dupl_symbol</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">SYMBOL</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">SYMBOL</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># number of HGNC symbols that have at least one duplicate</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+<p>In the following, we want to take a look at the conversion pattern of some of the duplicated HGNC symbols.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># subset the conversion pattern to that of the duplicated HGNC symbols</span></span>
+<span><span class="va">duplicated_conversion</span><span class="op">&lt;-</span><span class="va">bitr_EnsToSymb</span><span class="op">[</span><span class="va">bitr_EnsToSymb</span><span class="op">$</span><span class="va">SYMBOL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">dupl_symbol</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># for visibility: order the conversion pattern by the HGNC symbols</span></span>
+<span><span class="va">duplicated_conversion</span> <span class="op">&lt;-</span> <span class="va">duplicated_conversion</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">duplicated_conversion</span><span class="op">$</span><span class="va">SYMBOL</span><span class="op">)</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># take a look at conversion pattern of the first few duplicated HGNC symbols:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">duplicated_conversion</span>, n <span class="op">=</span> <span class="fl">6</span> <span class="op">)</span></span>
+<span><span class="co">#&gt;              ENSEMBL SYMBOL</span></span>
+<span><span class="co">#&gt; 2940 ENSG00000140543   DET1</span></span>
+<span><span class="co">#&gt; 4664 ENSG00000173867   DET1</span></span>
+<span><span class="co">#&gt; 250  ENSG00000054277   OPN3</span></span>
+<span><span class="co">#&gt; 5869 ENSG00000203668   OPN3</span></span></code></pre></div>
+</div>
+</div>
+<div id="ii-remove-the-duplicated-gene-ids" class="section level3" number="3.3.2">
+<h3>
+<span class="header-section-number">3.3.2</span> (ii) Remove the duplicated gene IDs<a class="anchor" aria-label="anchor" href="#ii-remove-the-duplicated-gene-ids"><i class="fas fa-link"></i></a>
+</h3>
+<p>For the subsequent analysis (whether differential expression analysis of gene set analysis), we need to deal with the duplicated gene IDs and remove them in a suitable way such that only one unique gene expression measurement among the duplicates remains. There is no recommended way to proceed, i.e. no common approach presented in an official scientific puplication, but instead several approaches suggested by users in corresponding user platforms, generally, the manner of duplicate gene ID removal is performed at the discretion of the user. We therefore present three approaches to duplicate gene ID removal.</p>
+<div id="option-1-keep-the-duplicate-with-the-lowest-subscript" class="section level4" number="3.3.2.1">
+<h4>
+<span class="header-section-number">3.3.2.1</span> Option 1: Keep the duplicate with the lowest subscript<a class="anchor" aria-label="anchor" href="#option-1-keep-the-duplicate-with-the-lowest-subscript"><i class="fas fa-link"></i></a>
+</h4>
+<p>This is the simplest approach among the three.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#1. remove duplicated HGNC gene symbols</span></span>
+<span><span class="va">exprdat_symbol_dupl1</span><span class="op">&lt;-</span><span class="va">expression_data_merged</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">expression_data_merged</span><span class="op">$</span><span class="va">SYMBOL</span><span class="op">)</span>,<span class="op">]</span></span>
+<span></span>
+<span></span>
+<span><span class="co">#2. remove duplicated ENSEMBL gene IDs</span></span>
+<span><span class="va">exprdat_symbol_dupl1</span><span class="op">&lt;-</span><span class="va">exprdat_symbol_dupl1</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl1</span><span class="op">$</span><span class="va">Row.names</span><span class="op">)</span>,<span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   71</span></span>
+<span></span>
+<span><span class="co">#3. set HGNC gene symbols as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl1</span><span class="op">)</span><span class="op">&lt;-</span><span class="va">exprdat_symbol_dupl1</span><span class="op">$</span><span class="va">SYMBOL</span></span>
+<span><span class="co">#Remove columns containing ENSEMBL and HGNC symbols</span></span>
+<span><span class="va">exprdat_symbol_dupl1</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl1</span>, select<span class="op">=</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Row.names</span>,<span class="va">SYMBOL</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   69</span></span>
+<span><span class="co"># we particularly see that the number of columns is now at its initial number</span></span></code></pre></div>
+<p>We now want to inspect a small part of the gene expression data set:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">exprdat_symbol_dupl1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
+<span><span class="co">#&gt;          NA18486 NA18498 NA18499 NA18501 NA18502 NA18504</span></span>
+<span><span class="co">#&gt; DPM1          22     105      40      55      67      37</span></span>
+<span><span class="co">#&gt; SCYL3         22     100     107      53      72      38</span></span>
+<span><span class="co">#&gt; C1orf112       5      23      10      18      15       8</span></span>
+<span><span class="co">#&gt; FGR           36      70      41      33      59      29</span></span>
+<span><span class="co">#&gt; FUCA2         29      79      33      31      29      21</span></span>
+<span><span class="co">#&gt; NFYA         301     351     344     176     340     170</span></span>
+<span><span class="co">#&gt; LAS1L         32      22       4       8      15       5</span></span>
+<span><span class="co">#&gt; ENPP4         52     419     173     137     127      72</span></span>
+<span><span class="co">#&gt; BAD           48      81      65      19      59      57</span></span>
+<span><span class="co">#&gt; HS3ST1         8      15       8      18       4      27</span></span>
+<span><span class="co">#&gt;          NA18505 NA18507 NA18508 NA18510</span></span>
+<span><span class="co">#&gt; DPM1          88     127      70      43</span></span>
+<span><span class="co">#&gt; SCYL3         98      69      66      43</span></span>
+<span><span class="co">#&gt; C1orf112      11      16      18       7</span></span>
+<span><span class="co">#&gt; FGR           22      71      12      43</span></span>
+<span><span class="co">#&gt; FUCA2         42      62      41      25</span></span>
+<span><span class="co">#&gt; NFYA         238     247     226     227</span></span>
+<span><span class="co">#&gt; LAS1L         15      16      19      15</span></span>
+<span><span class="co">#&gt; ENPP4        267     247     154      81</span></span>
+<span><span class="co">#&gt; BAD           44      79      71      79</span></span>
+<span><span class="co">#&gt; HS3ST1         3      11       5       3</span></span></code></pre></div>
+</div>
+<div id="option-2-keep-the-rounded-mean-expression-value-of-all-duplicated-gene-ids" class="section level4" number="3.3.2.2">
+<h4>
+<span class="header-section-number">3.3.2.2</span> Option 2: Keep the (rounded) mean expression value of all duplicated gene IDs<a class="anchor" aria-label="anchor" href="#option-2-keep-the-rounded-mean-expression-value-of-all-duplicated-gene-ids"><i class="fas fa-link"></i></a>
+</h4>
+<p>Here, we remove duplicated HGNC gene symbols (case 2) before removing the duplicated Ensembl gene IDs (case 1). The reason for this is elaborated below.</p>
+<div id="i-remove-the-duplicated-hgnc-gene-symbols-case-2" class="section level5" number="3.3.2.2.1">
+<h5>
+<span class="header-section-number">3.3.2.2.1</span> (i) Remove the duplicated HGNC gene symbols (case 2)<a class="anchor" aria-label="anchor" href="#i-remove-the-duplicated-hgnc-gene-symbols-case-2"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#generate matrix to contain (rounded) mean expression values of all rows that have same HGNC gene symbol</span></span>
+<span><span class="co">#ncol=ncol(expression_data_filterByExpr)-2 since data set contains 2 columns with IDs at this point</span></span>
+<span><span class="va">mean_symbol</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span>nrow<span class="op">=</span><span class="fl">0</span>, ncol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">expression_data_merged</span><span class="op">)</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># for each duplicated HGNC gene symbol separately, we gather all rows with the corresponding gene expression data and then extract the (rounded) mean expression value of all rows</span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span></span>
+<span><span class="co"># go through each HGNC symbols which occurs multiple times</span></span>
+<span><span class="co"># determine all rows whose HGNC symbols correspond to currently considered HGNC symbol</span></span>
+<span><span class="va">counts_dupl</span> <span class="op">&lt;-</span> <span class="va">expression_data_merged</span><span class="op">[</span><span class="va">expression_data_merged</span><span class="op">$</span><span class="va">SYMBOL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co">#compute the mean expression value of all rows that contain to the given HGNC gene symbol</span></span>
+<span><span class="va">dupl_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="va">counts_dupl</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">expression_data_merged</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># store rounded mean expression value in matrix</span></span>
+<span><span class="co"># this matrix is extended by a single row of gene expression data which corresponds to the (rounded) mean expression data that corresponds to the given HGNC gene symbol</span></span>
+<span><span class="va">mean_symbol</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">mean_symbol</span>,<span class="va">dupl_id</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># after completing the for-loop, mean_symbol contains the mean expression measurements of each HGNC gene symbol which contains duplicates resulting from gene ID conversion</span></span>
+<span><span class="co"># We want to take a look at a part of the data set </span></span>
+<span><span class="va">mean_symbol</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">9</span><span class="op">]</span></span>
+<span><span class="co">#&gt;         NA18486 NA18498 NA18499 NA18501 NA18502 NA18504</span></span>
+<span><span class="co">#&gt; dupl_id      37     129      64      54      70      54</span></span>
+<span><span class="co">#&gt; dupl_id      50     182      82     118      60      52</span></span>
+<span><span class="co">#&gt;         NA18505 NA18507 NA18508</span></span>
+<span><span class="co">#&gt; dupl_id      62     123      70</span></span>
+<span><span class="co">#&gt; dupl_id     102      80      78</span></span>
+<span></span>
+<span><span class="co">#set corresponding HGNC gene symbols as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">mean_symbol</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># test whether the number of rows in mean_symbol corresponds to the number HGNC symbols</span></span>
+<span><span class="co"># that occur more than once</span></span>
+<span><span class="co"># result should be TRUE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">mean_symbol</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span></span>
+<span><span class="co"># remove all rows from the expression data whose HGNC symbol has at least one duplicate</span></span>
+<span><span class="co"># intuition: we have just dealt with the corresponding rows and do not want them to be considered in the second step (which deals with case 2</span></span>
+<span></span>
+<span><span class="va">exprdat_symbol_dupl2</span> <span class="op">&lt;-</span> <span class="va">expression_data_merged</span><span class="op">[</span><span class="op">!</span><span class="va">expression_data_merged</span><span class="op">$</span><span class="va">SYMBOL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">dupl_symbol</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># test whether number of rows in resulting data set equals nrow of inital data set minus number of genes with at least one duplicate</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">expression_data_merged</span><span class="op">)</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">duplicated_conversion</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6037   71</span></span></code></pre></div>
+</div>
+<div id="ii-remove-the-duplicated-ensembl-ids" class="section level5" number="3.3.2.2.2">
+<h5>
+<span class="header-section-number">3.3.2.2.2</span> (ii) Remove the duplicated ENSEMBL IDs<a class="anchor" aria-label="anchor" href="#ii-remove-the-duplicated-ensembl-ids"><i class="fas fa-link"></i></a>
+</h5>
+<p>Caution: Single ENSEMBL IDs that are mapped to multiple HGNC symbol naturally generate identical count data for all corresponding HGNC symbols. It is therefore pointless to compute mean expression values. This is verifiable by looking at data set only containing those ENSEMBL IDs that are mapped by multiple HGNC symbols:</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">test_dupl_ensembl</span> <span class="op">&lt;-</span> <span class="va">exprdat_symbol_dupl2</span><span class="op">[</span><span class="va">exprdat_symbol_dupl2</span><span class="op">$</span><span class="va">Row.names</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">dupl_ensembl</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># take a look at a few entries of the data set:</span></span>
+<span><span class="va">test_dupl_ensembl</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span></span>
+<span><span class="co">#&gt;            Row.names NA18486 NA18498 NA18499 NA18501</span></span>
+<span><span class="co">#&gt; 299  ENSG00000063587     143     116     244      76</span></span>
+<span><span class="co">#&gt; 300  ENSG00000063587     143     116     244      76</span></span>
+<span><span class="co">#&gt; 610  ENSG00000088298     202     384     368     207</span></span>
+<span><span class="co">#&gt; 611  ENSG00000088298     202     384     368     207</span></span>
+<span><span class="co">#&gt; 1502 ENSG00000111215      17      12       9       2</span></span>
+<span><span class="co">#&gt; 1503 ENSG00000111215      17      12       9       2</span></span>
+<span><span class="co">#&gt;      NA18502</span></span>
+<span><span class="co">#&gt; 299      157</span></span>
+<span><span class="co">#&gt; 300      157</span></span>
+<span><span class="co">#&gt; 610      397</span></span>
+<span><span class="co">#&gt; 611      397</span></span>
+<span><span class="co">#&gt; 1502       8</span></span>
+<span><span class="co">#&gt; 1503       8</span></span></code></pre></div>
+<p>We see that those rows that originate from the same Ensembl ID contain identical count data.<br></p>
+<p>We therefore proceed as in option 1 and use the HGNC symbol that occurs first while we remove the rest.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Keep HGNC symbol that occurs first</span></span>
+<span><span class="va">exprdat_symbol_dupl2</span><span class="op">&lt;-</span><span class="va">exprdat_symbol_dupl2</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span><span class="op">$</span><span class="va">Row.names</span><span class="op">)</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># inspect dimension</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6010   71</span></span>
+<span></span>
+<span><span class="co">#set HGNC symbol as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span><span class="op">)</span><span class="op">&lt;-</span><span class="va">exprdat_symbol_dupl2</span><span class="op">$</span><span class="va">SYMBOL</span></span>
+<span></span>
+<span><span class="co">#remove any columns containing IDs</span></span>
+<span><span class="va">exprdat_symbol_dupl2</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span>,select<span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Row.names</span>,<span class="va">SYMBOL</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#add those rows to data set that contain mean expression values of duplicate HGNC symbols</span></span>
+<span><span class="va">exprdat_symbol_dupl2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span>,<span class="va">mean_symbol</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#inspect the dimension of the remaining gene expression data set</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   69</span></span></code></pre></div>
+</div>
+</div>
+<div id="option-3-among-the-duplicates-keep-row-with-highest-overall-expression-values-i.e-highest-counts-across-all-samples" class="section level4" number="3.3.2.3">
+<h4>
+<span class="header-section-number">3.3.2.3</span> Option 3: Among the duplicates, keep row with highest overall expression values (i.e highest counts across all samples)<a class="anchor" aria-label="anchor" href="#option-3-among-the-duplicates-keep-row-with-highest-overall-expression-values-i.e-highest-counts-across-all-samples"><i class="fas fa-link"></i></a>
+</h4>
+<p>The intuituin behind this approach is that the row with highest counts values has highest power of being detected as differentially expressed. As in option 2, this applies only to the duplicates that result from multiple ENSEMBL IDs being mapped to the same HGNC symbol.</p>
+<div id="i-remove-duplicated-hgnc-symbols" class="section level5" number="3.3.2.3.1">
+<h5>
+<span class="header-section-number">3.3.2.3.1</span> (i) Remove duplicated HGNC symbols<a class="anchor" aria-label="anchor" href="#i-remove-duplicated-hgnc-symbols"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># generate matrix to later contain row with highest count values among ID duplicates this data set is to be filled gradually and with each iteration of the follwing for-loop</span></span>
+<span><span class="va">highest_count_symbol</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span>, nrow<span class="op">=</span><span class="fl">0</span>, ncol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">expression_data_filterByExpr</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># for each duplicated HGNC gene symbol separately, we gather all rows with the corresponding gene expression data and then extract the row with the highest overall magnitude of counts</span></span>
+<span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span></span>
+<span>  <span class="co"># go through each HGNC symbols which occurs multiple times</span></span>
+<span>  <span class="co"># determine all rows whose HGNC symbols correspond to currently considered HGNC symbol</span></span>
+<span>  <span class="va">counts_dupl</span><span class="op">&lt;-</span><span class="va">expression_data_merged</span><span class="op">[</span><span class="va">expression_data_merged</span><span class="op">$</span><span class="va">SYMBOL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,<span class="op">]</span></span>
+<span></span>
+<span>  <span class="co"># order rows in decreasing manner by their number of read counts across all samples</span></span>
+<span>  <span class="va">order_rowsums</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">counts_dupl</span><span class="op">[</span>,<span class="fl">2</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">counts_dupl</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">#detect row with highest number of read counts across all samples (i.e. row with rank 1)</span></span>
+<span>  <span class="va">dupl_id</span><span class="op">&lt;-</span><span class="va">counts_dupl</span><span class="op">[</span><span class="va">order_rowsums</span><span class="op">==</span><span class="fl">1</span>,<span class="op">]</span></span>
+<span>  </span>
+<span>  <span class="co">#store corresponding expression</span></span>
+<span>  <span class="va">highest_count_symbol</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">highest_count_symbol</span>,<span class="va">dupl_id</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="op">}</span></span>
+<span></span>
+<span></span>
+<span><span class="co">#Remove all initial values with HGNC  duplicates from the dataset initial gene expression data set</span></span>
+<span><span class="va">exprdat_symbol_dupl3</span><span class="op">&lt;-</span><span class="va">expression_data_merged</span><span class="op">[</span><span class="op">!</span> <span class="va">expression_data_merged</span><span class="op">$</span><span class="va">SYMBOL</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">dupl_symbol</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
+</div>
+<div id="case-2-remove-duplicated-ensembl-ids" class="section level5" number="3.3.2.3.2">
+<h5>
+<span class="header-section-number">3.3.2.3.2</span> Case 2: Remove duplicated ENSEMBL IDs<a class="anchor" aria-label="anchor" href="#case-2-remove-duplicated-ensembl-ids"><i class="fas fa-link"></i></a>
+</h5>
+<p>As in option 2, it is pointless to detect the row with highest count values as all rows
+that correspond to the same ENSEMBL ID as these rows naturally contain identical count data. We therefore remove the duplicate ENSEMBL ID that occurs first (such as in option 1).</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Keep the corresponding ENSEMBL ID that occurs first</span></span>
+<span><span class="va">exprdat_symbol_dupl3</span><span class="op">&lt;-</span><span class="va">exprdat_symbol_dupl3</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl3</span><span class="op">$</span><span class="va">Row.names</span><span class="op">)</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Add the gene expression rows of all HGNC gene symbols that were initially duplicated</span></span>
+<span><span class="va">exprdat_symbol_dupl3</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl3</span>,<span class="va">highest_count_symbol</span> <span class="op">)</span></span>
+<span></span>
+<span><span class="co">#Set HGNC symbols as rownames</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl3</span><span class="op">)</span><span class="op">&lt;-</span><span class="va">exprdat_symbol_dupl3</span><span class="op">$</span><span class="va">SYMBOL</span></span>
+<span><span class="co">#Remove any column that contains information on gene IDs</span></span>
+<span><span class="va">exprdat_symbol_dupl3</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl3</span>, select<span class="op">=</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">Row.names</span>,<span class="va">SYMBOL</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Inspect the dimension of the resulting gene expression data set </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">exprdat_symbol_dupl3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 6012   69</span></span>
+<span><span class="co"># we see that the sample size (number of columns) is now back at its initial number</span></span></code></pre></div>
+</div>
+</div>
+</div>
+</div>
+<div id="intermediate-step-choose-which-converted-gene-expression-data-sets-to-proceed-with" class="section level2" number="3.4">
+<h2>
+<span class="header-section-number">3.4</span> Intermediate step: Choose which converted gene expression data sets to proceed with<a class="anchor" aria-label="anchor" href="#intermediate-step-choose-which-converted-gene-expression-data-sets-to-proceed-with"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this illustration, we will proceed with only one of the three gene expression data sets that result from the conversion of the gene IDs and the removal of the duplications. Here, we will proceed with the first approach to
+the removal of duplicated gene IDs. However, you can easily switch to another approach at your discretion.</p>
+<p>We will proceed with the gene expression data set stored as object “expression_data_filt_symbol”.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_filt_symbol</span> <span class="op">&lt;-</span> <span class="va">exprdat_symbol_dupl1</span></span></code></pre></div>
+</div>
+<div id="step-3-differential-expression-analysis" class="section level2" number="3.5">
+<h2>
+<span class="header-section-number">3.5</span> Step 3: Differential expression analysis<a class="anchor" aria-label="anchor" href="#step-3-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h2>
+<p>From the corresponding results table of differential expression analysis, we will later transform certain metrics (i.e. columns) into a gene-level statistic for each gene based on which the gene ranking is generated.</p>
+<p>We will proceed analogously to the script “Instructions_Differential_Expression_Analysis”, in which we perform differential expression analysis using three established methods, namely</p>
+<ol style="list-style-type: decimal">
+<li>voom/limma</li>
+<li>DESeq2</li>
+<li>edgeR</li>
+</ol>
+<p>While we already have the count data at hand that we will be working with, we additionally need the conditions of the samples. Since we work with the Pickrell data set in these illustrations, we have to load the corresponding data.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load pickrell data </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">pickrell</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Store the sample conditions in the object sample_conditions </span></span>
+<span><span class="va">sample_conditions</span> <span class="op">&lt;-</span> <span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span></span></code></pre></div>
+<div id="option-1-differential-expression-analysis-using-limma" class="section level3" number="3.5.1">
+<h3>
+<span class="header-section-number">3.5.1</span> Option 1: Differential expression analysis using limma<a class="anchor" aria-label="anchor" href="#option-1-differential-expression-analysis-using-limma"><i class="fas fa-link"></i></a>
+</h3>
+<p>Note that the code illustrations are based on the following user manual:  <a href="https://bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf" class="uri">https://bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf</a></p>
+<div id="i-generate-the-required-input-object-for-limma" class="section level4" number="3.5.1.1">
+<h4>
+<span class="header-section-number">3.5.1.1</span> (i) Generate the required input object for limma<a class="anchor" aria-label="anchor" href="#i-generate-the-required-input-object-for-limma"><i class="fas fa-link"></i></a>
+</h4>
+<p>As described in “Instructions_Differential_Expression_Analysis”, the gene expression data set expression_data_filt_symbol is currently a data frame and needs to be converted to a DGEList object.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># store expression data with corresponding sample conditions in object of class DGEList</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/DGEList.html">DGEList</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">expression_data_filt_symbol</span>,</span>
+<span>             group <span class="op">=</span> <span class="va">sample_conditions</span><span class="op">)</span></span></code></pre></div>
+<p>Required function arguments:</p>
+<ul>
+<li>counts: matrix that contains RNA-Seq data (i.e. count data)</li>
+</ul>
+<p>Optional function arguments:</p>
+<ul>
+<li>group: indicates the condition of each sample/library
+<ul>
+<li>this argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point.</li>
+</ul>
+</li>
+</ul>
+<p>Note that we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions.</p>
+</div>
+<div id="ii-normalization" class="section level4" number="3.5.1.2">
+<h4>
+<span class="header-section-number">3.5.1.2</span> (ii) Normalization<a class="anchor" aria-label="anchor" href="#ii-normalization"><i class="fas fa-link"></i></a>
+</h4>
+<p>The following piece of code generates a normalization factor for each sample. This accounts for sample-specific effects (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/calcNormFactors.html">calcNormFactors</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<p>Note that this function does not transform the count data, but rather generates a normalization factor for each sample which is incorporated into the subsequent analysis separately.</p>
+</div>
+<div id="iii-voom-transformation" class="section level4" number="3.5.1.3">
+<h4>
+<span class="header-section-number">3.5.1.3</span> (iii) voom transformation<a class="anchor" aria-label="anchor" href="#iii-voom-transformation"><i class="fas fa-link"></i></a>
+</h4>
+<p>Note that the voom transformation facilitates the use of the subsequent functions that were initially developed for microarray data.</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># design matrix (rows correspond to samples, columns indicate which coefficients are to be estimated)</span></span>
+<span><span class="va">design_matrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html">model.matrix</a></span><span class="op">(</span><span class="op">~</span><span class="va">sample_conditions</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># voom transformation (transformation of count data to log-cpm values, computation of observation weight for each</span></span>
+<span><span class="co"># gene based on mean-variance relationship)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/voom.html">voom</a></span><span class="op">(</span><span class="va">y</span>, design <span class="op">=</span> <span class="va">design_matrix</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="iv-differential-expression-analysis" class="section level4" number="3.5.1.4">
+<h4>
+<span class="header-section-number">3.5.1.4</span> (iv) Differential expression analysis<a class="anchor" aria-label="anchor" href="#iv-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Fit a linear model for each gene</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/lmFit.html">lmFit</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Calculate the statistics for the assessment of differential expression</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/ebayes.html">eBayes</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get the results table for each gene whose differential expression was assessed</span></span>
+<span><span class="va">DE_results_limma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/toptable.html">topTable</a></span><span class="op">(</span><span class="va">y</span>, number <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Removing intercept from test coefficients</span></span>
+<span><span class="co"># Note that number = nrow(y) ensures that all genes are displayed in results, not just a subset</span></span></code></pre></div>
+</div>
+<div id="v-rename-columns-in-results-table" class="section level4" number="3.5.1.5">
+<h4>
+<span class="header-section-number">3.5.1.5</span> (v) Rename columns in results table<a class="anchor" aria-label="anchor" href="#v-rename-columns-in-results-table"><i class="fas fa-link"></i></a>
+</h4>
+<p>This step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL.</p>
+<p>A renaming of some columns (such as adjusted p-value) is necessary in the context of these illustrations since the different methods for differential expression analysis typically differ in the column names of the results tables. A unification of the column names is required so that we can use the same code to illustrate further conduct of GSA in the subsequent code.</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># First, we transform to results table to a data frame so that we see the results table directly when accessing it through the name "res"</span></span>
+<span><span class="va">DE_results_limma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_limma</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Rename the column that contains the adjusted p-values: rename padj to p_adj</span></span>
+<span><span class="va">DE_results_limma</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="va">DE_results_limma</span>, p_adj <span class="op">=</span> <span class="va">`adj.P.Val`</span><span class="op">)</span></span></code></pre></div>
+<p>Inspect the first 10 genes in the results table:</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_limma</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              logFC   AveExpr         t      P.Value</span></span>
+<span><span class="co">#&gt; RPS4Y1   9.2108222 1.9863775 47.179852 1.030921e-55</span></span>
+<span><span class="co">#&gt; TMSB4Y   5.0808942 0.5129662 26.670268 6.040369e-39</span></span>
+<span><span class="co">#&gt; PNPLA4  -0.9237796 5.3334920 -8.775861 5.661613e-13</span></span>
+<span><span class="co">#&gt; PUDP    -0.8541771 2.1627703 -4.413691 3.518147e-05</span></span>
+<span><span class="co">#&gt; CXorf38 -0.5505387 3.7163801 -4.249159 6.357396e-05</span></span>
+<span><span class="co">#&gt; TXLNG   -0.4040253 5.1161343 -4.042236 1.316055e-04</span></span>
+<span><span class="co">#&gt; G0S2    -1.4699085 5.1923255 -3.854451 2.504228e-04</span></span>
+<span><span class="co">#&gt; JUN     -0.5877351 8.2731730 -3.918457 2.014918e-04</span></span>
+<span><span class="co">#&gt; APAF1    0.4049046 5.9682315  3.825437 2.761789e-04</span></span>
+<span><span class="co">#&gt; IL1A    -1.4852480 3.5436708 -3.665932 4.695371e-04</span></span>
+<span><span class="co">#&gt;                p_adj           B</span></span>
+<span><span class="co">#&gt; RPS4Y1  6.197899e-52 84.19116319</span></span>
+<span><span class="co">#&gt; TMSB4Y  1.815735e-35 62.68059267</span></span>
+<span><span class="co">#&gt; PNPLA4  1.134587e-09 19.20851972</span></span>
+<span><span class="co">#&gt; PUDP    5.287775e-02  2.14585449</span></span>
+<span><span class="co">#&gt; CXorf38 7.644132e-02  1.55146299</span></span>
+<span><span class="co">#&gt; TXLNG   1.318687e-01  0.73174212</span></span>
+<span><span class="co">#&gt; G0S2    1.844875e-01  0.15225728</span></span>
+<span><span class="co">#&gt; JUN     1.730527e-01  0.11384668</span></span>
+<span><span class="co">#&gt; APAF1   1.844875e-01 -0.06540026</span></span>
+<span><span class="co">#&gt; IL1A    2.645036e-01 -0.24633830</span></span></code></pre></div>
+</div>
+</div>
+<div id="option-2-differential-expression-analysis-using-deseq2" class="section level3" number="3.5.2">
+<h3>
+<span class="header-section-number">3.5.2</span> Option 2: Differential expression analysis using DESeq2<a class="anchor" aria-label="anchor" href="#option-2-differential-expression-analysis-using-deseq2"><i class="fas fa-link"></i></a>
+</h3>
+<p>The official DESeq2 vignette can be found through the following link:<br><a href="http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html" class="uri">http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html</a></p>
+<div id="i-generate-the-required-input-object-for-deseq2" class="section level4" number="3.5.2.1">
+<h4>
+<span class="header-section-number">3.5.2.1</span> (i) Generate the required input object for DESeq2<a class="anchor" aria-label="anchor" href="#i-generate-the-required-input-object-for-deseq2"><i class="fas fa-link"></i></a>
+</h4>
+<p>DESeq2 operates on the format DESeqDataSet which contains information on the count data, the conditions of the samples and the design (for further information see below). Note that for gene expression data sets that must be imported to R, additional steps are necessary before the following code can be run.</p>
+<div id="generate-a-data-frame-which-contains-the-condition-of-each-sample" class="section level5" number="3.5.2.1.1">
+<h5>
+<span class="header-section-number">3.5.2.1.1</span> Generate a data frame which contains the condition of each sample<a class="anchor" aria-label="anchor" href="#generate-a-data-frame-which-contains-the-condition-of-each-sample"><i class="fas fa-link"></i></a>
+</h5>
+<p>Here, the information on the sample conditions is the only column in the data frame. However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata.</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Here, the information on the sample conditions is the only column in the data frame</span></span>
+<span><span class="co"># However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata</span></span>
+<span></span>
+<span><span class="co"># The names of the samples are stored as the row names of the data frame</span></span>
+<span><span class="co"># Important: make sure that the order of the conditions in sample_conditions corresponds to the order of the</span></span>
+<span><span class="co"># samples in expression_data</span></span>
+<span><span class="va">coldata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">sample_conditions</span>,</span>
+<span>                      row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">expression_data_filt_symbol</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Rename the column header to "condition"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"condition"</span></span>
+<span></span>
+<span><span class="co"># Recode the variable "condition" as a factor</span></span>
+<span><span class="co"># Rename the sample conditions (in this case from "female" and "male") to "untreated" and "treated"</span></span>
+<span><span class="co"># Note: make sure that the control level in variable condition is coded as the first level (i.e. "untreated")</span></span>
+<span><span class="va">coldata</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">$</span><span class="va">condition</span>,</span>
+<span>                            labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"untreated"</span>,<span class="st">"treated"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="generate-the-deseqdataset" class="section level5" number="3.5.2.1.2">
+<h5>
+<span class="header-section-number">3.5.2.1.2</span> Generate the DESeqDataSet<a class="anchor" aria-label="anchor" href="#generate-the-deseqdataset"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeqDataSet.html">DESeqDataSetFromMatrix</a></span><span class="op">(</span>countData <span class="op">=</span> <span class="va">expression_data_filt_symbol</span>,</span>
+<span>                            colData <span class="op">=</span> <span class="va">coldata</span>,</span>
+<span>                            design <span class="op">=</span> <span class="op">~</span> <span class="va">condition</span><span class="op">)</span></span></code></pre></div>
+<p>Relevant function arguments:</p>
+<ul>
+<li><p>countData: count data from gene expression data set</p></li>
+<li>
+<p>colData: data frame that contains information on the samples (see above)</p>
+<ul>
+<li>conditions of the samples (required) and possibly further variables to correct for (such as batch effects)</li>
+</ul>
+</li>
+<li>
+<p>design: indicates which variables from colData are used for modelling</p>
+<ul>
+<li>more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model</li>
+<li>if more than one variable from colData are used in argument design (e.g. a second variable “batch”), the syntax changes to the following formula: design ~ batch + condition</li>
+<li>make sure that the variable of interest (here: variable that represents conditions of the samples) is placed at the end of the formula</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="ii-differential-expression-analysis" class="section level4" number="3.5.2.2">
+<h4>
+<span class="header-section-number">3.5.2.2</span> (ii) Differential expression analysis<a class="anchor" aria-label="anchor" href="#ii-differential-expression-analysis"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Perform default differential expression analysis</span></span>
+<span><span class="va">dds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeq.html">DESeq</a></span><span class="op">(</span><span class="va">dds</span><span class="op">)</span></span>
+<span><span class="co"># 2. Generate results table which provides</span></span>
+<span><span class="va">DE_results_DESeq2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/results.html">results</a></span><span class="op">(</span><span class="va">dds</span><span class="op">)</span></span></code></pre></div>
+<p>Description of the functions:</p>
+<ol style="list-style-type: decimal">
+<li><p>DESeq(): Estimation normalization factors, estimation of dispersions, fitting of generalized linear model, Wald statistics</p></li>
+<li><p>results(): Provides base mean across all samples, estimated log2 fold changes, standard errors, test statistics, p-values, adjusted p-values</p></li>
+</ol>
+</div>
+<div id="iii-rename-columns-in-results-table" class="section level4" number="3.5.2.3">
+<h4>
+<span class="header-section-number">3.5.2.3</span> (iii) Rename columns in results table<a class="anchor" aria-label="anchor" href="#iii-rename-columns-in-results-table"><i class="fas fa-link"></i></a>
+</h4>
+<p>This step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL.</p>
+<p>A renaming of some columns (such as adjusted p-value) is necessary in the context of these illustrations since the different methods for differential expression analysis typically differ in the column names of the results tables. A unification of the column names is required so that we can use the same code to illustrate further conduct of GSA in the subsequent code.</p>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># First, we transform to results table to a data frame so that we see the results table directly when accessing it through the name "res"</span></span>
+<span><span class="va">DE_results_DESeq2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_DESeq2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Rename the column that contains the adjusted p-values: rename padj to p_adj</span></span>
+<span><span class="va">DE_results_DESeq2</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="va">DE_results_DESeq2</span>, p_adj <span class="op">=</span> <span class="st">"padj"</span><span class="op">)</span></span></code></pre></div>
+<p>Inspect the first 10 genes in the results table:</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_DESeq2</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           baseMean log2FoldChange      lfcSE        stat</span></span>
+<span><span class="co">#&gt; DPM1      62.75469    0.039750916 0.11391821  0.34894259</span></span>
+<span><span class="co">#&gt; SCYL3     70.48070    0.029018887 0.11169067  0.25981478</span></span>
+<span><span class="co">#&gt; C1orf112  13.00584    0.165462332 0.15395569  1.07473997</span></span>
+<span><span class="co">#&gt; FGR       43.59294    0.114160979 0.19557799  0.58371076</span></span>
+<span><span class="co">#&gt; FUCA2     37.97983   -0.006418336 0.10904211 -0.05886108</span></span>
+<span><span class="co">#&gt; NFYA     228.55761    0.051517676 0.09634003  0.53474838</span></span>
+<span><span class="co">#&gt; LAS1L     11.53808    0.025279778 0.18769732  0.13468375</span></span>
+<span><span class="co">#&gt; ENPP4    175.90798    0.300378628 0.16292558  1.84365538</span></span>
+<span><span class="co">#&gt; BAD       66.39161   -0.264365320 0.10275897 -2.57267378</span></span>
+<span><span class="co">#&gt; HS3ST1    10.12732   -0.199017932 0.31888446 -0.62410671</span></span>
+<span><span class="co">#&gt;              pvalue     p_adj</span></span>
+<span><span class="co">#&gt; DPM1     0.72713241 0.9221794</span></span>
+<span><span class="co">#&gt; SCYL3    0.79500665 0.9425284</span></span>
+<span><span class="co">#&gt; C1orf112 0.28249116 0.7202446</span></span>
+<span><span class="co">#&gt; FGR      0.55941492 0.8668048</span></span>
+<span><span class="co">#&gt; FUCA2    0.95306276 0.9863983</span></span>
+<span><span class="co">#&gt; NFYA     0.59282386 0.8789008</span></span>
+<span><span class="co">#&gt; LAS1L    0.89286192 0.9709726</span></span>
+<span><span class="co">#&gt; ENPP4    0.06523338 0.4823900</span></span>
+<span><span class="co">#&gt; BAD      0.01009163 0.3001405</span></span>
+<span><span class="co">#&gt; HS3ST1   0.53255751 0.8522562</span></span></code></pre></div>
+</div>
+</div>
+<div id="option-3-differential-expression-analysis-using-edger" class="section level3" number="3.5.3">
+<h3>
+<span class="header-section-number">3.5.3</span> Option 3: Differential expression analysis using edgeR<a class="anchor" aria-label="anchor" href="#option-3-differential-expression-analysis-using-edger"><i class="fas fa-link"></i></a>
+</h3>
+<p>The instructions for edgeR are based on the following vignette:  <a href="https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf" class="uri">https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf</a></p>
+<div id="i-generate-the-required-input-object-for-edger" class="section level4" number="3.5.3.1">
+<h4>
+<span class="header-section-number">3.5.3.1</span> (i) Generate the required input object for edgeR<a class="anchor" aria-label="anchor" href="#i-generate-the-required-input-object-for-edger"><i class="fas fa-link"></i></a>
+</h4>
+<p>Store the expression data with corresponding sample conditions in object of class DGEList</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/DGEList.html">DGEList</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">expression_data_filt_symbol</span>,</span>
+<span>             group <span class="op">=</span> <span class="va">sample_conditions</span><span class="op">)</span></span></code></pre></div>
+<p>Required function arguments:</p>
+<ul>
+<li>counts: matrix that contains RNA-Seq data (i.e. count data)</li>
+</ul>
+<p>Optional function arguments:</p>
+<ul>
+<li>group: indicates condition of each sample/library
+<ul>
+<li>This argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point</li>
+</ul>
+</li>
+</ul>
+<p>Note that we leave the remaining arguments in their default state since the corresponding info will be added through the subsequent pipeline of functions.</p>
+</div>
+<div id="ii-normalization-1" class="section level4" number="3.5.3.2">
+<h4>
+<span class="header-section-number">3.5.3.2</span> (ii) Normalization<a class="anchor" aria-label="anchor" href="#ii-normalization-1"><i class="fas fa-link"></i></a>
+</h4>
+<p>The following piece of code generates a normalization factor for each sample. This accounts for sample-specific effects (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/calcNormFactors.html">calcNormFactors</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<p>Note: this function does not transform the count data, but rather generates a normalization factor for each sample which is incorporated into the subsequent analysis separately.</p>
+</div>
+<div id="iii-estimation-of-the-dispersion" class="section level4" number="3.5.3.3">
+<h4>
+<span class="header-section-number">3.5.3.3</span> (iii) Estimation of the dispersion<a class="anchor" aria-label="anchor" href="#iii-estimation-of-the-dispersion"><i class="fas fa-link"></i></a>
+</h4>
+<p>Estimate the common and tagwise dispersion which quantify the variation of the true abundance of a given gene between different samples and is required to assess differential expression realistically.</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/estimateDisp.html">estimateDisp</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Using classic mode.</span></span></code></pre></div>
+</div>
+<div id="iv-differential-expression-analysis-1" class="section level4" number="3.5.3.4">
+<h4>
+<span class="header-section-number">3.5.3.4</span> (iv) Differential expression analysis<a class="anchor" aria-label="anchor" href="#iv-differential-expression-analysis-1"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Test each gene for differential expression:</span></span>
+<span><span class="va">DE_results_edgeR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/exactTest.html">exactTest</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract pre-specified number (n) of genes</span></span>
+<span><span class="va">DE_results_edgeR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/topTags.html">topTags</a></span><span class="op">(</span><span class="va">DE_results_edgeR</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">DE_results_edgeR</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Note: argument n specifies the number of top differentially expressed genes to be displayed in the results</span></span>
+<span><span class="co"># n = nrow(DE_results) ensures the results of all genes whose differential expression was assessed are displayed</span></span></code></pre></div>
+</div>
+<div id="v-rename-columns-in-results-table-1" class="section level4" number="3.5.3.5">
+<h4>
+<span class="header-section-number">3.5.3.5</span> (v) Rename columns in results table<a class="anchor" aria-label="anchor" href="#v-rename-columns-in-results-table-1"><i class="fas fa-link"></i></a>
+</h4>
+<p>This step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL.</p>
+<p>A renaming of some columns (such as adjusted p-value) is necessary in the context of these illustrations since the different methods for differential expression analysis typically differ in the column names of the results tables. A unification of the column names is required so that we can use the same code to illustrate further conduct of GSA in the subsequent code.</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># first, we transform to results table to a data frame so that we see the results</span></span>
+<span><span class="co"># table directly when accessing it through the name "res"</span></span>
+<span><span class="va">DE_results_edgeR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_edgeR</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># rename column that contains adjusted p-values: rename padj to p_adj</span></span>
+<span><span class="va">DE_results_edgeR</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html">rename</a></span><span class="op">(</span><span class="va">DE_results_edgeR</span>, p_adj <span class="op">=</span> <span class="st">"FDR"</span><span class="op">)</span></span></code></pre></div>
+<p>Inspect the first 10 genes in the results table:</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_edgeR</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              logFC   logCPM        PValue         p_adj</span></span>
+<span><span class="co">#&gt; RPS4Y1  10.1333123 6.155249  0.000000e+00  0.000000e+00</span></span>
+<span><span class="co">#&gt; TMSB4Y   5.5794301 2.519825 6.410059e-121 1.926864e-117</span></span>
+<span><span class="co">#&gt; PNPLA4  -0.9445304 5.485374  1.886604e-17  3.780754e-14</span></span>
+<span><span class="co">#&gt; PUDP    -0.7765765 2.571056  3.068012e-06  4.611222e-03</span></span>
+<span><span class="co">#&gt; SNAI1   -1.6458976 3.288273  4.706338e-06  5.476681e-03</span></span>
+<span><span class="co">#&gt; GADD45G -1.5869489 2.679748  5.465750e-06  5.476681e-03</span></span>
+<span><span class="co">#&gt; THEM5   -1.1254688 2.303001  1.950080e-05  1.674840e-02</span></span>
+<span><span class="co">#&gt; CTSW     1.5021901 3.365996  2.908369e-05  2.185640e-02</span></span>
+<span><span class="co">#&gt; TXLNG   -0.4250226 5.207714  3.574779e-05  2.284273e-02</span></span>
+<span><span class="co">#&gt; TCFL5   -0.6026382 5.756625  3.799523e-05  2.284273e-02</span></span></code></pre></div>
+<p>Note that one gene has an adjusted p-value of 0. We will deal with this issue when generating the gene ranking from edgeR.</p>
+</div>
+</div>
+</div>
+<div id="step-4-generate-gene-ranking" class="section level2" number="3.6">
+<h2>
+<span class="header-section-number">3.6</span> Step 4: Generate gene ranking<a class="anchor" aria-label="anchor" href="#step-4-generate-gene-ranking"><i class="fas fa-link"></i></a>
+</h2>
+<p>We will now apply a gene-level statistic to the results table of differential expression analysis to generate a gene ranking which will serve as input to GSEAPreranked.</p>
+<p>As we have performed differential expression analysis with
+- voom/limma
+- DESeq2
+- edgeR,
+we will also generate three gene rankings, one for each of these three methods.</p>
+<p>The formula of the gene-level ranking metric is  
+$ -1 * log10(p-value) * sign(log fold change)$.<br>
+Note that by p-value, we refer to the non-adjusted p-value.</p>
+<div id="option-1-generate-gene-ranking-from-limmavoom-results" class="section level3" number="3.6.1">
+<h3>
+<span class="header-section-number">3.6.1</span> Option 1: Generate gene ranking from limma/voom results<a class="anchor" aria-label="anchor" href="#option-1-generate-gene-ranking-from-limmavoom-results"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Subset the gene expression data set to those genes that have a p-value (i.e.</span></span>
+<span><span class="co"># which have been NOT been excluded from differential expression analysis)</span></span>
+<span></span>
+<span><span class="co"># indicate those genes WITH a p-value</span></span>
+<span><span class="va">ind_nonNA_pvalue_limma</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">DE_results_limma</span><span class="op">$</span><span class="va">P.Value</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># subset gene expression data set to those genes with a p-value</span></span>
+<span><span class="va">DE_results_noNA</span> <span class="op">&lt;-</span> <span class="va">DE_results_limma</span><span class="op">[</span><span class="va">ind_nonNA_pvalue_limma</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="co"># 2. create vector that contains the value of the gene-level ranking metric for each gene</span></span>
+<span><span class="va">rankvec_limma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html">sign</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">logFC</span><span class="op">)</span><span class="op">*</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">P.Value</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. assign respective gene ID to each value in the vector</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">rankvec_limma</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. sort the vector in descending order</span></span>
+<span><span class="va">rankvec_limma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">rankvec_limma</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Inspect the first 10 genes from the gene ranking</p>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">rankvec_limma</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    RPS4Y1    TMSB4Y     APAF1      LPXN     TRAM2   VIPAS39 </span></span>
+<span><span class="co">#&gt; 54.986774 38.218937  3.558810  3.205103  3.168007  3.079378 </span></span>
+<span><span class="co">#&gt;    MAP3K1    SLC9A6      PHKB     HCFC2 </span></span>
+<span><span class="co">#&gt;  3.021735  2.928611  2.878186  2.820192</span></span></code></pre></div>
+</div>
+<div id="option-2-generate-gene-ranking-from-deseq2-results" class="section level3" number="3.6.2">
+<h3>
+<span class="header-section-number">3.6.2</span> Option 2: Generate gene ranking from DESeq2 results<a class="anchor" aria-label="anchor" href="#option-2-generate-gene-ranking-from-deseq2-results"><i class="fas fa-link"></i></a>
+</h3>
+<div id="i-shrink-estimated-log-fold-change-values" class="section level5" number="3.6.2.0.1">
+<h5>
+<span class="header-section-number">3.6.2.0.1</span> (i) Shrink estimated log fold change values<a class="anchor" aria-label="anchor" href="#i-shrink-estimated-log-fold-change-values"><i class="fas fa-link"></i></a>
+</h5>
+<p>Before generating the gene ranking from the DESeq2 results, we need to perform an additional shrinkage that is specific to DESeq2. The intuition behind the shrinkage of log fold change values is as follows: As mentioned in the paper, RNA-Seq data consists (in its rare form) of count data in which is inherently heteroscedastic, i.e. the variance of the count data depends on the mean count of the count data. It is observable that ratios between counts are considerably noisier in low magnitudes of counts compared to higher magnitudes, i.e.the log fold changes between both conditions are higher if the overall magnitude of counts is lower, independent of the acual extent to which the gene is differentially expressed between both samples. DESeq2 addresses this issue by shrinking the estimated log fold changes in the direction of 0. The magnitude of shrinkage is higher if the available information for a gene is lower (which may be because of a low magnitude of counts, a high dispersion or few degrees of freedom.) A more detailed description is provided in the DESeq2 paper by Love et al. (2014).<br></p>
+<p>The shrinkage is performed on object dds, which is a result of the function DESeq():</p>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html">installed.packages</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="st">"apeglm"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"apeglm"</span>, update <span class="op">=</span> <span class="cn">FALSE</span>, ask <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">DE_results_DESeq2_shrink</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/lfcShrink.html">lfcShrink</a></span><span class="op">(</span><span class="va">dds</span>,</span>
+<span>                                      coef <span class="op">=</span> <span class="st">"condition_treated_vs_untreated"</span>,</span>
+<span>                                      type<span class="op">=</span><span class="st">"apeglm"</span><span class="op">)</span></span></code></pre></div>
+<p>Function arguments:</p>
+<ul>
+<li>type: method to perform shrinkage
+<ul>
+<li>we opt for the default “apeglm” but you can choose from two alternative options as well</li>
+</ul>
+</li>
+<li>coef: indicate the coefficients to be shrunk
+<ul>
+<li>we can obtain the right argument from the following function call:</li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/results.html">resultsNames</a></span><span class="op">(</span><span class="va">dds</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Intercept"                     </span></span>
+<span><span class="co">#&gt; [2] "condition_treated_vs_untreated"</span></span></code></pre></div>
+<p>This shows us that we can either shrink the intercept or the “condition_treated_vs_untreated”. Since we do not want to shrink the intercept but the log fold changes, we opt for the second option “condition_treated_vs_untreated”.</p>
+<p>Finish up the results table:</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># transform results table to data frame</span></span>
+<span><span class="va">DE_results_DESeq2_shrink</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">DE_results_DESeq2_shrink</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Inspect the first 10 genes from the results table: </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results_DESeq2_shrink</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           baseMean log2FoldChange      lfcSE     pvalue</span></span>
+<span><span class="co">#&gt; DPM1      62.75469    0.007239544 0.04886163 0.72713241</span></span>
+<span><span class="co">#&gt; SCYL3     70.48070    0.005442790 0.04843766 0.79500665</span></span>
+<span><span class="co">#&gt; C1orf112  13.00584    0.018952417 0.05474525 0.28249116</span></span>
+<span><span class="co">#&gt; FGR       43.59294    0.008111253 0.05228672 0.55941492</span></span>
+<span><span class="co">#&gt; FUCA2     37.97983   -0.001170671 0.04792965 0.95306276</span></span>
+<span><span class="co">#&gt; NFYA     228.55761    0.004565422 0.04684065 0.59282386</span></span>
+<span><span class="co">#&gt; LAS1L     11.53808    0.001892317 0.05136660 0.89286192</span></span>
+<span><span class="co">#&gt; ENPP4    175.90798    0.035048816 0.06668445 0.06523338</span></span>
+<span><span class="co">#&gt; BAD       66.39161   -0.153096248 0.13831883 0.01009163</span></span>
+<span><span class="co">#&gt; HS3ST1    10.12732   -0.005332940 0.05301329 0.53255751</span></span>
+<span><span class="co">#&gt;               padj</span></span>
+<span><span class="co">#&gt; DPM1     0.9221794</span></span>
+<span><span class="co">#&gt; SCYL3    0.9425284</span></span>
+<span><span class="co">#&gt; C1orf112 0.7202446</span></span>
+<span><span class="co">#&gt; FGR      0.8668048</span></span>
+<span><span class="co">#&gt; FUCA2    0.9863983</span></span>
+<span><span class="co">#&gt; NFYA     0.8789008</span></span>
+<span><span class="co">#&gt; LAS1L    0.9709726</span></span>
+<span><span class="co">#&gt; ENPP4    0.4823900</span></span>
+<span><span class="co">#&gt; BAD      0.3001405</span></span>
+<span><span class="co">#&gt; HS3ST1   0.8522562</span></span></code></pre></div>
+<p>Note that the estimated log fold change values (column log2FoldChange) are smaller (in absolute terms!) compared to the regular DESeq2 results, while the (adjusted and non-adjusted) p-value remain unchanged.<br>
+Also we have not performed shrinkage in Instructions_Differential_Expression_Analysis as there, the goal was to get the list of differentially expressed genes which are detected solely based on the adjusted p-value.</p>
+</div>
+<div id="ii-generate-the-gene-ranking" class="section level5" number="3.6.2.0.2">
+<h5>
+<span class="header-section-number">3.6.2.0.2</span> (ii) Generate the gene ranking<a class="anchor" aria-label="anchor" href="#ii-generate-the-gene-ranking"><i class="fas fa-link"></i></a>
+</h5>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Subset the gene expression data set to those genes that have a p-value (i.e.</span></span>
+<span><span class="co"># which have been NOT been excluded from differential expression analysis)</span></span>
+<span></span>
+<span><span class="co"># indicate those genes WITH a p-value</span></span>
+<span><span class="va">ind_nonNA_pvalue</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">DE_results_DESeq2_shrink</span><span class="op">$</span><span class="va">pvalue</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># subset gene expression data set to those genes with a p-value</span></span>
+<span><span class="va">DE_results_noNA</span> <span class="op">&lt;-</span> <span class="va">DE_results_DESeq2_shrink</span><span class="op">[</span><span class="va">ind_nonNA_pvalue</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="co"># 2. create vector that contains the value of the gene-level ranking metric for each gene</span></span>
+<span><span class="va">rankvec_DESeq2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html">sign</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">log2FoldChange</span><span class="op">)</span><span class="op">*</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">pvalue</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. assign respective gene ID to each value in the vector</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">rankvec_DESeq2</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. sort the vector in descending order</span></span>
+<span><span class="va">rankvec_DESeq2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">rankvec_DESeq2</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Inspect the first 10 genes from the gene ranking</p>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">rankvec_DESeq2</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     RPS4Y1     TMSB4Y       CTSW      APAF1     SLC9A6 </span></span>
+<span><span class="co">#&gt; 204.389769  63.911362   4.463494   3.750030   3.568346 </span></span>
+<span><span class="co">#&gt;       LPXN      HCFC2     MAP3K1    VIPAS39      TRAM2 </span></span>
+<span><span class="co">#&gt;   3.559146   3.342299   3.281639   3.273736   3.174903</span></span></code></pre></div>
+</div>
+</div>
+<div id="option-3-generate-gene-ranking-from-edger-results" class="section level3" number="3.6.3">
+<h3>
+<span class="header-section-number">3.6.3</span> Option 3: Generate gene ranking from edgeR results<a class="anchor" aria-label="anchor" href="#option-3-generate-gene-ranking-from-edger-results"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Subset the gene expression data set to those genes that have a p-value (i.e. </span></span>
+<span><span class="co"># which have been NOT been excluded from differential expression analysis)</span></span>
+<span></span>
+<span><span class="co"># indicate those genes WITH a p-value</span></span>
+<span><span class="va">ind_nonNA_pvalue</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">DE_results_edgeR</span><span class="op">$</span><span class="va">PValue</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># subset gene expression data set to those genes with a p-value </span></span>
+<span><span class="va">DE_results_noNA</span> <span class="op">&lt;-</span> <span class="va">DE_results_edgeR</span><span class="op">[</span><span class="va">ind_nonNA_pvalue</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="co"># 2. create vector that contains the value of the gene-level ranking metric for each gene </span></span>
+<span><span class="va">rankvec_edgeR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html">sign</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">logFC</span><span class="op">)</span><span class="op">*</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">p_adj</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. assign respective gene ID to each value in the vector </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">rankvec_edgeR</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. sort the vector in descending order </span></span>
+<span><span class="va">rankvec_edgeR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">rankvec_edgeR</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Inspect the first 10 genes from the gene ranking</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">rankvec_edgeR</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      RPS4Y1      TMSB4Y        CTSW       APAF1        LPXN </span></span>
+<span><span class="co">#&gt;         Inf 116.7151490   1.6604215   1.0364270   1.0022766 </span></span>
+<span><span class="co">#&gt;      SLC9A6      MAP3K1       TRAM2        ATP8      MICAL2 </span></span>
+<span><span class="co">#&gt;   0.9838143   0.8656713   0.8517879   0.8455509   0.8230068</span></span></code></pre></div>
+<p>Note that gene RPS4Y1 has a ranking value of Inf (infinity). The reason behind this is that the gene has an adjusted p-value of 0 in the edgeR results of differential expression analysis (as already observed above). We have to solve this issue, however, there is no common default approach. For the illustration purposes here, we replace the value Inf by the second biggest ranking value in the ranking.</p>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># replace value Inf by second biggest value in the ranking </span></span>
+<span><span class="va">rankvec_edgeR</span><span class="op">[</span><span class="va">rankvec_edgeR</span> <span class="op">==</span> <span class="cn">Inf</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">rankvec_edgeR</span><span class="op">[</span><span class="va">rankvec_edgeR</span> <span class="op">!=</span> <span class="cn">Inf</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># inspect ranking again</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">rankvec_edgeR</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      RPS4Y1      TMSB4Y        CTSW       APAF1        LPXN </span></span>
+<span><span class="co">#&gt; 116.7151490 116.7151490   1.6604215   1.0364270   1.0022766 </span></span>
+<span><span class="co">#&gt;      SLC9A6      MAP3K1       TRAM2        ATP8      MICAL2 </span></span>
+<span><span class="co">#&gt;   0.9838143   0.8656713   0.8517879   0.8455509   0.8230068</span></span></code></pre></div>
+</div>
+</div>
+<div id="step-5-export-gene-ranking-to-text-file" class="section level2" number="3.7">
+<h2>
+<span class="header-section-number">3.7</span> Step 5: Export gene ranking to text file<a class="anchor" aria-label="anchor" href="#step-5-export-gene-ranking-to-text-file"><i class="fas fa-link"></i></a>
+</h2>
+<p>For the purpose of simplicity, we only export one of the gene rankings to a text file. Here, we export the ranking generated with limma.</p>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># this path indicates that we store the gene ranking as the text file </span></span>
+<span><span class="co"># "gene_ranking.txt" in folder "Input_Objects_GSEAPreranked"</span></span>
+<span><span class="va">path_conditions</span> <span class="op">&lt;-</span> <span class="st">"./data/Input_Objects_GSEAPreranked/gene_ranking.txt"</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">rankvec_limma</span>,</span>
+<span>            file <span class="op">=</span> <span class="va">path_conditions</span>,</span>
+<span>            quote <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>            row.names <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>            col.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Function arguments:</p>
+<ul>
+<li><p>x: object to be exported to a text file</p></li>
+<li><p>file: location (i.e. folder and file) in which the object is to be stored</p></li>
+<li><p>quote = FALSE ensures that none of the characters (in this case gene and sample identifiers) are surrounded by double quotes</p></li>
+<li><p>row.names = TRUE ensures that the gene IDs are included in the export</p></li>
+<li><p>col.names = TRUE ensures that no gene information is in the first row since the web-based tool ignores whatever is in the first row</p></li>
+</ul>
+</div>
+<div id="step-6-further-preparation-in-excel" class="section level2" number="3.8">
+<h2>
+<span class="header-section-number">3.8</span> Step 6: Further preparation in Excel<a class="anchor" aria-label="anchor" href="#step-6-further-preparation-in-excel"><i class="fas fa-link"></i></a>
+</h2>
+<p>For this step, follow the instructions on the very bottom of the following link:<br><a href="http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats" class="uri">http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats</a></p>
+<p>Then, scroll to section “RNK: Ranked list file format (*.rnk)“.</p>
 
+</div>
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="prefiltering.html"><span class="header-section-number">2</span> Prefiltering</a></div>
 <div class="next"><a href="gene-id-duplicate-removals.html"><span class="header-section-number">4</span> Gene ID Duplicate Removals</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#gsea-preranking"><span class="header-section-number">3</span> GSEA Preranking</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#gsea-preranking"><span class="header-section-number">3</span> GSEA Preranking</a></li>
+<li>
+<a class="nav-link" href="#libraries-1"><span class="header-section-number">3.1</span> Libraries</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#load-data"><span class="header-section-number">3.1.1</span> Load data</a></li></ul>
+</li>
+<li><a class="nav-link" href="#step-1-convert-ensembl-ids-to-hgnc-symbols"><span class="header-section-number">3.2</span> Step 1: Convert Ensembl IDs to HGNC symbols</a></li>
+<li>
+<a class="nav-link" href="#step-2-remove-the-duplicated-gene-ids"><span class="header-section-number">3.3</span> Step 2: Remove the duplicated gene IDs</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#i-take-a-closer-look-at-the-duplicates"><span class="header-section-number">3.3.1</span> (i) Take a closer look at the duplicates</a></li>
+<li><a class="nav-link" href="#ii-remove-the-duplicated-gene-ids"><span class="header-section-number">3.3.2</span> (ii) Remove the duplicated gene IDs</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#intermediate-step-choose-which-converted-gene-expression-data-sets-to-proceed-with"><span class="header-section-number">3.4</span> Intermediate step: Choose which converted gene expression data sets to proceed with</a></li>
+<li>
+<a class="nav-link" href="#step-3-differential-expression-analysis"><span class="header-section-number">3.5</span> Step 3: Differential expression analysis</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#option-1-differential-expression-analysis-using-limma"><span class="header-section-number">3.5.1</span> Option 1: Differential expression analysis using limma</a></li>
+<li><a class="nav-link" href="#option-2-differential-expression-analysis-using-deseq2"><span class="header-section-number">3.5.2</span> Option 2: Differential expression analysis using DESeq2</a></li>
+<li><a class="nav-link" href="#option-3-differential-expression-analysis-using-edger"><span class="header-section-number">3.5.3</span> Option 3: Differential expression analysis using edgeR</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#step-4-generate-gene-ranking"><span class="header-section-number">3.6</span> Step 4: Generate gene ranking</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#option-1-generate-gene-ranking-from-limmavoom-results"><span class="header-section-number">3.6.1</span> Option 1: Generate gene ranking from limma/voom results</a></li>
+<li><a class="nav-link" href="#option-2-generate-gene-ranking-from-deseq2-results"><span class="header-section-number">3.6.2</span> Option 2: Generate gene ranking from DESeq2 results</a></li>
+<li><a class="nav-link" href="#option-3-generate-gene-ranking-from-edger-results"><span class="header-section-number">3.6.3</span> Option 3: Generate gene ranking from edgeR results</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#step-5-export-gene-ranking-to-text-file"><span class="header-section-number">3.7</span> Step 5: Export gene ranking to text file</a></li>
+<li><a class="nav-link" href="#step-6-further-preparation-in-excel"><span class="header-section-number">3.8</span> Step 6: Further preparation in Excel</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
-<li><a id="book-source" href="https://github.com/rstudio/bookdown-demo/blob/master/02-gsea-preranking.Rmd">View source <i class="fab fa-github"></i></a></li>
-          <li><a id="book-edit" href="https://github.com/rstudio/bookdown-demo/edit/master/02-gsea-preranking.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+          
         </ul>
 </div>
     </nav>
@@ -95,7 +1084,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-02.</p>
+    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-19.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

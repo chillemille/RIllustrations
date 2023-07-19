@@ -3,67 +3,142 @@
 
 # Prefiltering
 
-## Libraries
 
-### Install Libraries
+ - In this script, we will learn about two options to exclude all genes that do not have a sufficient number of read counts across 
+ all samples. We distinguish between these two approaches since the different methods for differential expression analysis (see file "Instructions_Differential_Expression_Analysis") propose different methods for pre-filtering. 
 
-All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine. The code below will install {BiocManager} from CRAN, and you can then use this package to install PADOG, tweeDEseqCountDatam, and KEGGREST to your system.
+ - option 1: pre-filtering using a function provided by edgeR
+ - option 2: pre-filtering proposed by DESeq2
+ 
+## Libraries 
 
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.
 
 
 ```r
 install.packages("BiocManager")
-BiocManager::install("PADOG")
-BiocManager::install("tweeDEseqCountData")
-BiocManager::install("KEGGREST")
+BiocManager::install("tweeDESeqCountData")
+BiocManager::install("edgeR")
 
 ```
 
-### Load Libraries
-
-Note that loading these libraries will mask many functions from base R packages. If you run into unexpected errors on functions you're using, it is recommended to use namespacing to explicitly clarify the package from which you need a given function. (I have suppressed the library() loading messages from this document, however.)
-
+### Load Libraries 
 
 ```r
 
-library(PADOG)
 library(tweeDEseqCountData)
-library(KEGGREST)
+library(edgeR)
 ```
 
-Provide a brief note on what these libraries are for?
+Description of the packages: 
 
-### PADOG
+- tweeDESeqCountData: From this library we obtain the gene expression data set we will use for our illustrations. 
 
-The PADOG library does XYZ. You can find more information about it online at LINK.
+- edgeR: edgeR offers a function for pre-filtering we will use below. 
 
-### tweeDEseqCountData
+## Preparation of RNA-Seq data set used for illustration
 
-### KEGGREST
-
-## Load Data
-
-This section will change substantially when I reconfigure the project as an R package/book.
-
-For now, place any data you need into the `./data` directory.
+The RNA-Seq data set we will use for this illustration is provided by Pickrell et al. (2010) and is part of the library tweeDEseqCountData. In this data set, the sample conditions (i.e. phenotypes) of the respective samples correspond to the genders. For the purpose of simplicity and readability, we store the gene expression measurements and sample conditions in objects with neutral names.
 
 
 ```r
-# we load the voom-transformed Pickrell data set 
-load("data/expression_data_voomtransformed_Entrez.Rdata")
-
-# alternatively: load the gene expression measurements that have been transformed using 
-load("data/expression_data_vsttransformed_Entrez.Rdata")
-
-# additionally, we load the pickrell data set so that we can access the sample conditions
+# load pickrell data set 
 data(pickrell)
-```
 
-The sample conditions (i.e. phenotype labels) of the pickrell data set can be accessed using
+# access and store gene expression measurements
+expression_data <- Biobase::exprs(pickrell.eset)
+# access and store sample conditions 
+sample_conditions <- pickrell.eset$gender 
 
 
-```r
-pickrell.eset$gender 
+# take a look at the gene expression measurements: 
+head(expression_data, n = 5)
+#>                 NA18486 NA18498 NA18499 NA18501 NA18502
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      22     105      40      55      67
+#> ENSG00000000457      22     100     107      53      72
+#> ENSG00000000460       5      23      10      18      15
+#>                 NA18504 NA18505 NA18507 NA18508 NA18510
+#> ENSG00000000003       0       5       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      37      88     127      70      43
+#> ENSG00000000457      38      98      69      66      43
+#> ENSG00000000460       8      11      16      18       7
+#>                 NA18511 NA18516 NA18517 NA18519 NA18520
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419     104      42      66      58      82
+#> ENSG00000000457     103      51      91      87      77
+#> ENSG00000000460       9       7      19      15      22
+#>                 NA18522 NA18523 NA18852 NA18853 NA18855
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      95      40      32      30      34
+#> ENSG00000000457      87      39      65      50      43
+#> ENSG00000000460      17       7      14       8       5
+#>                 NA18856 NA18858 NA18861 NA18862 NA18870
+#> ENSG00000000003       0       1       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      44      47     113      79      38
+#> ENSG00000000457      48      52     117      73      50
+#> ENSG00000000460      13      15      23      15       8
+#>                 NA18871 NA18909 NA18912 NA18913 NA18916
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      41      95      45      54      49
+#> ENSG00000000457      72      93      44      73      81
+#> ENSG00000000460       8      17       2       7       8
+#>                 NA19093 NA19098 NA19099 NA19101 NA19102
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      80      86      73      59      36
+#> ENSG00000000457     103     158     118      89      15
+#> ENSG00000000460      15      15      25      13       2
+#>                 NA19108 NA19114 NA19116 NA19119 NA19127
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419     124      56      64      25     104
+#> ENSG00000000457     108      19     150      16      38
+#> ENSG00000000460      16       6      28       2      18
+#>                 NA19128 NA19130 NA19131 NA19137 NA19138
+#> ENSG00000000003       0       0       0       0       1
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      94     117      62      43      46
+#> ENSG00000000457      50     104     113      71     120
+#> ENSG00000000460      22      25      19      14      10
+#>                 NA19140 NA19143 NA19144 NA19147 NA19152
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      94      82      56      96      66
+#> ENSG00000000457      46     106      74     116     102
+#> ENSG00000000460      21       6      16      13      24
+#>                 NA19153 NA19159 NA19160 NA19171 NA19172
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      78      24      63      34      66
+#> ENSG00000000457     119      29      64      55      70
+#> ENSG00000000460      21       7       9      15      17
+#>                 NA19190 NA19192 NA19193 NA19200 NA19201
+#> ENSG00000000003       0       0       0       0       2
+#> ENSG00000000005       0       0       1       0       0
+#> ENSG00000000419      70      85      43      27      77
+#> ENSG00000000457     102      89      31      68      96
+#> ENSG00000000460       8      28      10       5      16
+#>                 NA19203 NA19204 NA19209 NA19210 NA19222
+#> ENSG00000000003       0       0       0       0       0
+#> ENSG00000000005       0       0       0       0       0
+#> ENSG00000000419      82      57      63      89      60
+#> ENSG00000000457      58      86     113      48      71
+#> ENSG00000000460      10      19      17      12      12
+#>                 NA19225 NA19238 NA19239 NA19257
+#> ENSG00000000003       0       0       0       0
+#> ENSG00000000005       0       0       0       0
+#> ENSG00000000419      76      69      84      76
+#> ENSG00000000457      81      73      87      81
+#> ENSG00000000460       7      21      35      11
+# take a look at the sample conditions:
+sample_conditions
 #>  [1] male   male   female male   female male   female male  
 #>  [9] female male   female male   female male   female male  
 #> [17] female female male   female male   female female male  
@@ -74,96 +149,93 @@ pickrell.eset$gender
 #> [57] male   female male   female male   female female male  
 #> [65] female female female male   female
 #> Levels: female male
+
+# inspect the number of genes (rows) and the number of samples (columns) in the gene expression data set 
+dim(expression_data)
+#> [1] 52580    69
 ```
 
-We proceed with the voom-transformed pickrell data set and the corresponding phenotype labels
+### Option 1: Pre-Filtering using edgeR's builting function
+This approach works with the function filterByExpr() from the package edgeR and is the proposed method for pre-filtering for the methods for differential expression analysis edgeR and voom/limma. This approach operates on the cpm-transformed count data (cpm: counts-per-million), which excludes all genes that do NOT have a certain number of counts-per-million in a certain number of samples. Note that this approach accounts for differences in the library size between the different samples. 
+
+
+#### step 1: Generate input object required by filterByExpr()
 
 
 ```r
-# gene expression measurements (transformed)
-# note: you can also proceed with the vst-transformed gene expression measurements 
-expression_data_transformed <- expression_data_voomtransformed_Entrez
-# sample conditions
-sample_conditions <- pickrell.eset$gender
+expression_data_filterByExpr <- DGEList(counts = expression_data, 
+                                        group = sample_conditions)
 ```
 
-## Prepare Sample Conditions
 
-First, we inspect the form of the initial (raw) sample conditions
+Function description: 
+
+- DGEList(): object to contain RNA sequencing measurements and additional information
+
+Argument description: 
+
+- counts: matrix of RNA-Seq data 
+- group: vector that contains the condition of each sample 
+
+#### step 2: Pre-filtering 
+
+The function filterByExpr() creates an indicator which on which genes do and which do not have a sufficient amount of read counts across all samples. Based on this indicator, the gene expression data set is then filtered.
+
 
 
 ```r
-## look at the class: 
-class(sample_conditions)
-#> [1] "factor"
-# -> the sample labels are already coded as factor
+# (i) for each gene, indicate if it fulfils the requirements to be kept for the subsequent analysis 
+indicator_keep <- filterByExpr(expression_data_filterByExpr)
 
-# the current levels are:
-levels(sample_conditions)
-#> [1] "female" "male"
+# (ii) filter the gene expression data set such that only those genes are kept which fulfill the requirements
+expression_data_filterByExpr <- expression_data_filterByExpr[indicator_keep,, keep.lib.sizes = FALSE]
 ```
+Note that the index "keep.lib.sizes = FALSE" ensures that the library size of each sample is recalculated after pre-filtering. 
 
-PADOG requires character vector with class labels of the samples. It can only contain "c" for control samples or "d" for disease samples
+
+#### step 3: Obtain final pre-filtered gene expression data set
+At this point, we transform the gene expression measurements back to a data frame. The reason for this is that some subsequent steps (such as the conversion of gene IDs do not work with the DGEList format). 
+
 
 
 ```r
+expression_data_filterByExpr <- as.data.frame(expression_data_filterByExpr$counts)
 
-# prepare sample conditions
-# we want to convert 
-# (i) "female" to "c"
-# (ii) "male" to "d"
-sample_conditions_prep <- factor(sample_conditions, 
-                                levels=c("female","male"), 
-                                labels=c("c","d"))
+# inspect the number of genes and the number of samples in the final pre-filtered gene expression data set 
+nrow(expression_data_filterByExpr)
+#> [1] 6246
 ```
+Observe that the number of genes has been reduced compared to the original (unfiltered) gene expression data set.
 
-## Run PADOG
 
-*It is recommended to set a seed to ensure exact reproducibility of the results if the code is run at multiple time points*
+### Option 2: Simpler Pre-filtering approach (proposed by DESeq2)  
+A simpler approach for pre-filtering has been proposed by the method for differential expression analysis DESeq2 (see file "Instructions_Differential_Expression_Analysis". In this approach, only those genes are kept for further analysis that have a pre-specified number of counts X (such as 10) across all samples. A higher value of X thereby leads to more genes being removed. \
+Note that DESeq2 proposes a stricter version of pre-filtering in which those genes are kept which have X number of counts in at least Y samples. \
+Note that none of the these two "simpler" approaches to pre-filtering take differences in library size into account. 
 
-you can specify any integer number as the seed. It is VERY IMPORTANT to choose the seed arbitrarily and WITHOUT INSPECTING the results the seed should NEVER be specified based on which value yields the most preferable results.
+#### step 1: Pre-Filtering
 
 
 ```r
-# run PADOG: 
- PADOG_results <- padog(esetm = as.matrix(expression_data_transformed), 
-                        group = sample_conditions_prep, 
-                        dseed = 1)
+# indicate which genes have at least 10 read counts across all samples:
+indicator_keep <- rowSums( expression_data ) >= 10 
+
+# alternative (and more strict) indicator:
+# indicator_keep <- rowSums( expression_data >=10) >= 10
+
+# subset gene expression data set accordingly 
+expression_data_filterDESEq2 <- expression_data[indicator_keep,]
 ```
 
-arguments:
-
--   `esetm`: matrix that contains the expression measurements
-    -   note: since the expression data is initially stored in a data frame, we transform it to a matrix when running PADOG
--   `group`: sample conditions (has values "c" and "d")
--   `dseed`: seed for random number generation (used in the process of phenotype permutation)
-
-additional arguments:
-
--   `paired`: indicates whether the samples in both groups are paired
--   `block`: if the samples are paired (i.e. argument paired = TRUE), then the paired samples must have the same block value
--   `gslist`: gives instructions on how to cluster the genes into gene sets
-    -   gslist = "KEGGRESTpathway": gene sets correspond to KEGG pathways
-    -   alternative: provide a user-defined list of gene sets
--   `organism`: organism from which the gene expression measurements are taken
-    -   for human, set organism = "hsa"
-    -   the required character value for other organisms can be extracted from the KEGGREST package:
-- `obtain` required organisms from column organism 
-- `annotation`: required if gslist is set to "KEGGRESTpathway" and the rownames of esetm are probe IDs 
-- can be set to NULL of gslist is set to "KEGGRESTpathway" and the rownames of esetm are in the Entrez gene ID format 
-- if rownames are other gene IDs, then sett annotation = NULL and make sure that the rownames are elements of gslist (and unique!)
-- `gs.names`: contains names of gene sets -> character vector 
-   - must have the same length as gslist 
-- `NI`: number of phenotype permutations employed in the assessment of the significance of a given gene set 
+#### step 2: Inspect final pre-filtered gene expression data set 
 
 
+```r
+dim(expression_data_filterDESEq2)
+#> [1] 10151    69
+```
+Note that the number of genes in the gene expression data set has decreased compared to the initial (unfiltered) gene expression data set. 
 
-## Adjust for Multiple Testing
 
-
-<!-- I haven't included the content from these parts yet, but I hope this example is clear enough! -->
-
-
-## Interpretation of Results
 
 
