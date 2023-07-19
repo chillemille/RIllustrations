@@ -38,8 +38,9 @@ library(edgeR)
 
 Description of the packages: 
 
-- tweeDESeqCountData: This library contains a collection of RNA-Seq data sets from which we use one for illustration
-- edgeR: this library analyses high dimensional count data resulting from RNA sequencing and is in our context particularly used for differential expression analysis (see file "Instructions_Differential_Expression_Analysis")
+- tweeDESeqCountData: From this library we obtain the gene expression data set we will use for our illustrations. 
+
+- edgeR: edgeR offers a function for pre-filtering we will use below. 
 
 # Preparation of RNA-Seq data set used for illustration
 

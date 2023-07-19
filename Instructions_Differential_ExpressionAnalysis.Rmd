@@ -36,7 +36,7 @@ BiocManager::install("dplyr")
 ```
 
 #### Load libraries
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 library(tweeDEseqCountData)
 library(limma)
 library(DESeq2)
@@ -46,11 +46,16 @@ library(dplyr)
 
 Description of the libraries: 
 
-- tweeDESeqCountData: 
-- limma: 
-- DESeq2: 
-- edgeR: 
-- dplyr: use to rename some columns in the results table 
+- tweeDEseqCountData: In addition the the pre-filtered gene expression data set (with converted gene IDs) that we load in the next step, we need the conditions of the samples which are provided by tweeDEseqCountData. 
+
+- limma: First option of methods for differential expression analysis.
+
+- DESeq2: Second option of methods for differential expression analysis. 
+
+- edgeR: Third option of methods for differential expression analysis. 
+
+- dplyr: Used to unify some of the columns in the results table of the three methods for differential expression analysis. 
+
 
 
 #### Load data 
@@ -173,7 +178,7 @@ DESeq2 operates on the format DESeqDataSet which contains information on the cou
 
 ##### Generate a data frame which contains the condition of each sample
 
-Here, the information on the sample conditions is the only column in the data frame. However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata. 
+Here, the information on the condition of each sample is the only column in the data frame, while the samples themselves are stored in the rownames. However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata. 
 
 
 ```{r}
@@ -191,6 +196,9 @@ colnames(coldata) <- "condition"
 # note: make sure that the control level in variable condition is coded as the first level (i.e. "untreated")
 coldata$condition <- factor(coldata$condition, 
                             labels = c("untreated","treated"))
+
+# inspect resulting data frame 
+head(coldata, n = 10)
 ```
 
 ##### Generate the DESeqDataSet
@@ -209,8 +217,8 @@ Relevant arguments in function DESeqDataSetFromMatrix:
 - colData: data frame that contains information on the samples (see above) such as the conditions of the samples (required) and possibly further variables to correct for (such as batch effects)
 
 - design: indicates which variables from colData are used for modelling
-- -> more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model 
-- -> if more than one variable from colData are used in argument design (e.g. a second variable "batch"), the syntax changes to the following formula: design ~ batch + condition 
+  + more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model 
+  + if more than one variable from colData are used in argument design (e.g. a second variable "batch"), the syntax changes to the following formula: design ~ batch + condition 
 - make sure that the variable of interest (here: variable that represents conditions of the samples) is placed at the end of the formula
 
 
@@ -263,9 +271,9 @@ Required function arguments:
 Optional function arguments: 
 
 - group: indicates condition of each sample/library 
--  -> this argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point 
+  + this argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point 
 
-Note thta we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions. 
+Note that we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions. 
 
 ### step 2: Normalization 
 
@@ -315,7 +323,5 @@ DE_results_edgeR_Entrez <- rename(DE_results_edgeR_Entrez, p_adj = FDR)
 # take a look at the results table
 head(DE_results_edgeR_Entrez, n = 20)
 ```
-
-
 
 
