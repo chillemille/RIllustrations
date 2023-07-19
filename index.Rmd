@@ -17,6 +17,7 @@ csl: chicago-fullnote-bibliography.csl
 
 (What is this book about?)
 
+To run the entire pipeline in this illustration, from pre-filtering to the actual GSA tool, several R packages are required. We here provide an overview of all packages that must be installed (if not already available) and loaded. In the sections that correspond to the individual steps, we give an overview of the locally required libraries. 
 
 ## Required R Packages
 
