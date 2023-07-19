@@ -6,19 +6,32 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
-# Load Libraries
+# Content of this script 
+
+In this script, we will go through the process of running PADOG. Note that PADOG requires the transformed RNA-Seq data and the genes in the Entrez ID format. 
+
+
+## Libraries 
+
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine. 
+
+```{r, eval = FALSE}
+install.packages("BiocManager")
+BiocManager::install("PADOG")
+BiocManager::install("tweeDEseqCountData")
+BiocManager::install("KEGGREST")
+
+```
+Load libraries:
 
 ```{r, warning = FALSE, message = FALSE}
-
 BiocManager::install("KEGGREST")
 library(PADOG)
 library(tweeDEseqCountData)
 library(KEGGREST)
-
-
 ```
 
 Provide a brief note on what these libraries are for?
@@ -27,7 +40,7 @@ Provide a brief note on what these libraries are for?
 
 - tweeDEseqCountData: In addition to the preprocessed Pickrell data set, which we load in the following step, PADOG requires the conditions of the samples 
 
-## KEGGREST
+- KEGGREST: To obtain the character value for a variety of organisms the user is required to provide in the function padog(). While the human organism is indicated by default, it might become necessary to consult the KEGGREST package if working with a different organism. 
 
 # Load Data
 
@@ -40,7 +53,7 @@ For now, place any data you need into the `./data` directory.
 load("data/expression_data_voomtransformed_Entrez.Rdata")
 
 # alternatively: load the gene expression measurements that have been transformed using 
-load("data/expression_data_vsttransformed_Entrez.Rdata")
+# load("data/expression_data_vsttransformed_Entrez.Rdata")
 
 # additionally, we load the pickrell data set so that we can access the sample conditions
 data(pickrell)
@@ -59,6 +72,7 @@ We proceed with the voom-transformed pickrell data set and the corresponding phe
 # gene expression measurements (transformed)
 # note: you can also proceed with the vst-transformed gene expression measurements 
 expression_data_transformed <- expression_data_voomtransformed_Entrez
+
 # sample conditions
 sample_conditions <- pickrell.eset$gender
 
@@ -95,9 +109,9 @@ sample_conditions_prep <- factor(sample_conditions,
 
 *It is recommended to set a seed to ensure exact reproducibility of the results if the code is run at multiple time points*
 
-you can specify any integer number as the seed. It is VERY IMPORTANT to choose the seed arbitrarily and WITHOUT INSPECTING the results the seed should NEVER be specified based on which value yields the most preferable results.
+You can specify any integer number as the seed. It is VERY IMPORTANT to choose the seed arbitrarily and WITHOUT INSPECTING the results the seed should NEVER be specified based on which value yields the most preferable results.
 
-```{r}
+```{r, message = FALSE, results = "hide"}
 # run PADOG: 
    PADOG_results <- padog(esetm = as.matrix(expression_data_transformed), 
                           group = sample_conditions_prep, 
@@ -130,13 +144,49 @@ additional arguments:
 - NI: number of phenotype permutations employed in the assessment of the significance of a given gene set 
 
 
+We want to take a first look at the results table. Note, however, that that we still have to add the adjusted p-values (see next step), based on which differential enrichment is eventually detected.
+
+```{r}
+head(PADOG_results , n = 10)
+```
+
+
+
 
 # Step 3: Adjust for Multiple Testing
 
 
-<!-- I haven't included the content from these parts yet, but I hope this example is clear enough! -->
+PADOG does not perform multiple test adjustment internally so that must be performed by the user. We here work with a function from the R package base which uses the method by Benjamini and Hochberg by default. 
+
+
+```{r}
+# add adjusted p-value in column Ppadog_adjusted
+PADOG_results$Ppadog_adjusted <- p.adjust(PADOG_results$Ppadog)
+```
 
 
 # Step 4: Interpretation of Results
 
+We want to inspect (a part of) the results and interpret the columns provided in the results table. 
 
+```{r}
+head(PADOG_results, n = 10)
+```
+
+Differential enrichment of a given gene set can now be assessed based on the adjusted p-value in column Ppadog_adjusted. For instance: detect all gene sets with Ppadog_adjusted < 0.05 as differentially enriched.
+
+Additional columns: 
+
+- Name: Name of gene set 
+
+- ID: Identifier of gene set 
+
+- Size: number of genes in gene set 
+
+- meanAbsT0: Mean of absolute (moderated) t-statistic of all genes that are a member of the given gene set 
+
+- padog0: Mean of abolute weighted moderate t-statistic of all genes that are a member of the given gene set 
+
+- PmeanAbsT: significance of of meanAbsT0
+
+- Ppadog: significance padog0
