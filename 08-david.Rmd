@@ -17,12 +17,12 @@ As an alternative universe, we choose all genes whose differential expression wa
 
 
 
-# Libraries 
+## Libraries 
 
 For this part of the instructions, there are no further libraries required. 
 
 
-### Load data 
+## Load data 
 
 Both objects, the list of differentially expressed genes as well as the alternative universe can be extracted from the results table of differential expression analysis. Note that DAVID works a variety of gene ID formats, including Ensembl ID. 
 

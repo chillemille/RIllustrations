@@ -2,8 +2,6 @@
 # Gene ID Duplicate Removals
 
 
-# Content of this script 
-
 In this script, we will go through the process of 
 
 - (1.) converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID) format 

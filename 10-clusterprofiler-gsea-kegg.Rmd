@@ -10,7 +10,7 @@ In this script, we will do the following two things:
 
 Note that we provide a separate file for the gene set databases GO and KEGG since clusterProfiler differs in the accepted gene ID formats for them. While for GO, a variety of formats, including Entrez ID, is accepted, the gene IDs must be converted to NCBI (Entrez) ID when choosing KEGG.  
 
-### Libraries 
+## Libraries 
 
 All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.
 
@@ -20,7 +20,7 @@ BiocManager::install("clusterProfiler")
 BiocManager::install("DESeq2")
 ```
 
-#### Load Libraries 
+### Load Libraries 
 ```{r, message = FALSE, warning = FALSE}
 
 library(clusterProfiler)

@@ -13,6 +13,10 @@ biblio-style: apalike
 csl: chicago-fullnote-bibliography.csl
 ---
 
+```{r}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 # About
 
 (What is this book about?)

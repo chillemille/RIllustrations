@@ -66,7 +66,7 @@ Note that depending on the method for differential expression analysis, differen
  We therefore work with both pre-filtered gene expression data sets generated in "Instructions_PreFiltering": 
 
 #### Previously Generated
-```{r eval=FALSE}
+```{r}
 # data is not yet in the folder. set to eval=FALSE for now
 load("./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_DESeq2.Rdata")
 load("./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_filterByExpr.Rdata")
@@ -168,7 +168,7 @@ We rename some of the columns in the results table to unify them across the diff
 DE_results_limma_Entrez <- as.data.frame(DE_results_limma_Entrez)
 
 # rename column that contains adjusted p-values: rename padj to p_adj
-DE_results_limma_Entrez <- rename(DE_results_limma_Entrez, p_adj = adj.P.Val)
+DE_results_limma_Entrez <- dplyr::rename(DE_results_limma_Entrez, p_adj = "adj.P.Val")
 
 
 # take a look at the results table: 
@@ -246,7 +246,7 @@ Note: function results() provided the base mean across all samples, the estimate
 DE_results_DESeq2_Entrez <- as.data.frame(DE_results_DESeq2_Entrez)
 
 # rename column that contains adjusted p-values: rename padj to p_adj
-DE_results_DESeq2_Entrez <- rename(DE_results_DESeq2_Entrez, p_adj = padj)
+DE_results_DESeq2_Entrez <- dplyr::rename(DE_results_DESeq2_Entrez, p_adj = padj)
 
 # take a look at the results table
 head(DE_results_DESeq2_Entrez, n = 20 )
@@ -318,7 +318,7 @@ Note that argument n specifies the number of top differentially expressed genes 
 DE_results_edgeR_Entrez <- as.data.frame(DE_results_edgeR_Entrez)
 
 # rename column that contains adjusted p-values: rename padj to p_adj
-DE_results_edgeR_Entrez <- rename(DE_results_edgeR_Entrez, p_adj = FDR)
+DE_results_edgeR_Entrez <- dplyr::rename(DE_results_edgeR_Entrez, p_adj = FDR)
 
 
 # take a look at the results table
