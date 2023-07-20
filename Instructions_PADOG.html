@@ -357,55 +357,48 @@ display: none;
 </div>
 
 
-<div id="libraries" class="section level1">
-<h1>Libraries</h1>
-<div id="install-libraries" class="section level2">
-<h2>Install Libraries</h2>
+<div id="content-of-this-script" class="section level1">
+<h1>Content of this script</h1>
+<p>In this script, we will go through the process of running PADOG. Note
+that PADOG requires the transformed RNA-Seq data and the genes in the
+Entrez ID format.<br />
+Note that in PADOG, there are no parameters that can be modified to
+adapt to the research question at hand, i.e. there are no researchers’
+degrees of freedom.</p>
+<div id="libraries" class="section level2">
+<h2>Libraries</h2>
 <p>All necessary packages are available on Bioconductor, and should be
-installed from there if not already available on your machine. The code
-below will install {BiocManager} from CRAN, and you can then use this
-package to install PADOG, tweeDEseqCountDatam, and KEGGREST to your
-system.</p>
+installed from there if not already available on your machine.</p>
 <pre class="r"><code>install.packages(&quot;BiocManager&quot;)
 BiocManager::install(&quot;PADOG&quot;)
 BiocManager::install(&quot;tweeDEseqCountData&quot;)
 BiocManager::install(&quot;KEGGREST&quot;)</code></pre>
-</div>
-<div id="load-libraries" class="section level2">
-<h2>Load Libraries</h2>
-<p>Note that loading these libraries will mask many functions from base
-R packages. If you run into unexpected errors on functions you’re using,
-it is recommended to use namespacing to explicitly clarify the package
-from which you need a given function. (I have suppressed the library()
-loading messages from this document, however.)</p>
-<pre class="r"><code>library(PADOG)
+<p>Load libraries:</p>
+<pre class="r"><code>BiocManager::install(&quot;KEGGREST&quot;)
+library(PADOG)
 library(tweeDEseqCountData)
 library(KEGGREST)</code></pre>
 <p>Provide a brief note on what these libraries are for?</p>
-</div>
-<div id="padog" class="section level2">
-<h2>PADOG</h2>
-<p>The PADOG library does XYZ. You can find more information about it
-online at LINK.</p>
-</div>
-<div id="tweedeseqcountdata" class="section level2">
-<h2>tweeDEseqCountData</h2>
-</div>
-<div id="keggrest" class="section level2">
-<h2>KEGGREST</h2>
+<ul>
+<li><p>PADOG: Provides the implementation of the method PADOG</p></li>
+<li><p>tweeDEseqCountData: In addition to the preprocessed Pickrell data
+set, which we load in the following step, PADOG requires the conditions
+of the samples</p></li>
+<li><p>KEGGREST: To obtain the character value for a variety of
+organisms the user is required to provide in the function padog(). While
+the human organism is indicated by default, it might become necessary to
+consult the KEGGREST package if working with a different
+organism.</p></li>
+</ul>
 </div>
 </div>
 <div id="load-data" class="section level1">
-<h1>Load Data</h1>
-<p>This section will change substantially when I reconfigure the project
-as an R package/book.</p>
-<p>For now, place any data you need into the <code>./data</code>
-directory.</p>
+<h1>Load data</h1>
 <pre class="r"><code># we load the voom-transformed Pickrell data set 
 load(&quot;data/expression_data_voomtransformed_Entrez.Rdata&quot;)
 
 # alternatively: load the gene expression measurements that have been transformed using 
-load(&quot;data/expression_data_vsttransformed_Entrez.Rdata&quot;)
+# load(&quot;data/expression_data_vsttransformed_Entrez.Rdata&quot;)
 
 # additionally, we load the pickrell data set so that we can access the sample conditions
 data(pickrell)</code></pre>
@@ -425,11 +418,12 @@ corresponding phenotype labels</p>
 <pre class="r"><code># gene expression measurements (transformed)
 # note: you can also proceed with the vst-transformed gene expression measurements 
 expression_data_transformed &lt;- expression_data_voomtransformed_Entrez
+
 # sample conditions
 sample_conditions &lt;- pickrell.eset$gender</code></pre>
 </div>
 <div id="step-1-prepare-sample-conditions" class="section level1">
-<h1>Step 1: Prepare Sample Conditions</h1>
+<h1>Step 1: Prepare sample conditions</h1>
 <p>First, we inspect the form of the initial (raw) sample conditions</p>
 <pre class="r"><code># look at the class: 
 class(sample_conditions)</code></pre>
@@ -453,170 +447,115 @@ sample_conditions_prep &lt;- factor(sample_conditions,
 <h1>Step 2: Run PADOG</h1>
 <p><em>It is recommended to set a seed to ensure exact reproducibility
 of the results if the code is run at multiple time points</em></p>
-<p>you can specify any integer number as the seed. It is VERY IMPORTANT
+<p>You can specify any integer number as the seed. It is VERY IMPORTANT
 to choose the seed arbitrarily and WITHOUT INSPECTING the results the
 seed should NEVER be specified based on which value yields the most
 preferable results.</p>
 <pre class="r"><code># run PADOG: 
- PADOG_results &lt;- padog(esetm = as.matrix(expression_data_transformed), 
-                        group = sample_conditions_prep, 
-                        dseed = 1)</code></pre>
-<pre><code>## Starting with 354 gene sets!
-## Analyzing 347 gene sets with 3 or more genes!
-## # of permutations used: 1000 
-## 10 / 1000 
-## 20 / 1000 
-## 30 / 1000 
-## 40 / 1000 
-## 50 / 1000 
-## 60 / 1000 
-## 70 / 1000 
-## 80 / 1000 
-## 90 / 1000 
-## 100 / 1000 
-## 110 / 1000 
-## 120 / 1000 
-## 130 / 1000 
-## 140 / 1000 
-## 150 / 1000 
-## 160 / 1000 
-## 170 / 1000 
-## 180 / 1000 
-## 190 / 1000 
-## 200 / 1000 
-## 210 / 1000 
-## 220 / 1000 
-## 230 / 1000 
-## 240 / 1000 
-## 250 / 1000 
-## 260 / 1000 
-## 270 / 1000 
-## 280 / 1000 
-## 290 / 1000 
-## 300 / 1000 
-## 310 / 1000 
-## 320 / 1000 
-## 330 / 1000 
-## 340 / 1000 
-## 350 / 1000 
-## 360 / 1000 
-## 370 / 1000 
-## 380 / 1000 
-## 390 / 1000 
-## 400 / 1000 
-## 410 / 1000 
-## 420 / 1000 
-## 430 / 1000 
-## 440 / 1000 
-## 450 / 1000 
-## 460 / 1000 
-## 470 / 1000 
-## 480 / 1000 
-## 490 / 1000 
-## 500 / 1000 
-## 510 / 1000 
-## 520 / 1000 
-## 530 / 1000 
-## 540 / 1000 
-## 550 / 1000 
-## 560 / 1000 
-## 570 / 1000 
-## 580 / 1000 
-## 590 / 1000 
-## 600 / 1000 
-## 610 / 1000 
-## 620 / 1000 
-## 630 / 1000 
-## 640 / 1000 
-## 650 / 1000 
-## 660 / 1000 
-## 670 / 1000 
-## 680 / 1000 
-## 690 / 1000 
-## 700 / 1000 
-## 710 / 1000 
-## 720 / 1000 
-## 730 / 1000 
-## 740 / 1000 
-## 750 / 1000 
-## 760 / 1000 
-## 770 / 1000 
-## 780 / 1000 
-## 790 / 1000 
-## 800 / 1000 
-## 810 / 1000 
-## 820 / 1000 
-## 830 / 1000 
-## 840 / 1000 
-## 850 / 1000 
-## 860 / 1000 
-## 870 / 1000 
-## 880 / 1000 
-## 890 / 1000 
-## 900 / 1000 
-## 910 / 1000 
-## 920 / 1000 
-## 930 / 1000 
-## 940 / 1000 
-## 950 / 1000 
-## 960 / 1000 
-## 970 / 1000 
-## 980 / 1000 
-## 990 / 1000 
-## 1000 / 1000</code></pre>
+   PADOG_results &lt;- padog(esetm = as.matrix(expression_data_transformed), 
+                          group = sample_conditions_prep, 
+                          dseed = 1)</code></pre>
 <p>arguments:</p>
 <ul>
-<li><code>esetm</code>: matrix that contains the expression measurements
+<li>esetm: matrix that contains the expression measurements
 <ul>
 <li>note: since the expression data is initially stored in a data frame,
 we transform it to a matrix when running PADOG</li>
 </ul></li>
-<li><code>group</code>: sample conditions (has values “c” and “d”)</li>
-<li><code>dseed</code>: seed for random number generation (used in the
-process of phenotype permutation)</li>
+<li>group: sample conditions (has values “c” and “d”)</li>
+<li>dseed:seed for random number generation (used in the process of
+phenotype permutation)</li>
 </ul>
 <p>additional arguments:</p>
 <ul>
-<li><code>paired</code>: indicates whether the samples in both groups
-are paired</li>
-<li><code>block</code>: if the samples are paired (i.e. argument paired
-= TRUE), then the paired samples must have the same block value</li>
-<li><code>gslist</code>: gives instructions on how to cluster the genes
-into gene sets
+<li>paired: indicates whether the samples in both groups are paired</li>
+<li>block: if the samples are paired (i.e. argument paired = TRUE), then
+the paired samples must have the same block value</li>
+<li>gslist: gives instructions on how to cluster the genes into gene
+sets
 <ul>
 <li>gslist = “KEGGRESTpathway”: gene sets correspond to KEGG
 pathways</li>
 <li>alternative: provide a user-defined list of gene sets</li>
 </ul></li>
-<li><code>organism</code>: organism from which the gene expression
-measurements are taken
+<li>organism: organism from which the gene expression measurements are
+taken
 <ul>
 <li>for human, set organism = “hsa”</li>
 <li>the required character value for other organisms can be extracted
 from the KEGGREST package:</li>
 </ul></li>
-<li><code>obtain</code> required organisms from column organism</li>
-<li><code>annotation</code>: required if gslist is set to
-“KEGGRESTpathway” and the rownames of esetm are probe IDs</li>
+<li>obtain required organisms from column organism</li>
+<li>annotation: required if gslist is set to “KEGGRESTpathway” and the
+rownames of esetm are probe IDs</li>
 <li>can be set to NULL of gslist is set to “KEGGRESTpathway” and the
 rownames of esetm are in the Entrez gene ID format</li>
 <li>if rownames are other gene IDs, then sett annotation = NULL and make
 sure that the rownames are elements of gslist (and unique!)</li>
-<li><code>gs.names</code>: contains names of gene sets -&gt; character
-vector
+<li>gs.names: contains names of gene sets -&gt; character vector
 <ul>
 <li>must have the same length as gslist</li>
 </ul></li>
-<li><code>NI</code>: number of phenotype permutations employed in the
-assessment of the significance of a given gene set</li>
+<li>NI: number of phenotype permutations employed in the assessment of
+the significance of a given gene set</li>
 </ul>
+<p>We want to take a first look at the results table. Note, however,
+that that we still have to add the adjusted p-values (see next step),
+based on which differential enrichment is eventually detected.</p>
+<pre class="r"><code>head(PADOG_results , n = 10)</code></pre>
+<pre><code>##       Name    ID Size meanAbsT0   padog0 PmeanAbsT Ppadog
+## 04380 &lt;NA&gt; 04380   66  2.622104 3.832812     0.005  0.002
+## 04810 &lt;NA&gt; 04810  111  2.326027 5.476170     0.004  0.004
+## 03010 &lt;NA&gt; 03010   89  5.378671 9.659220     0.014  0.010
+## 05213 &lt;NA&gt; 05213   23  1.528150 1.461810     0.027  0.010
+## 05171 &lt;NA&gt; 05171  118  4.788746 8.020661     0.013  0.013
+## 05417 &lt;NA&gt; 05417  112  2.094534 3.096663     0.015  0.017
+## 05162 &lt;NA&gt; 05162   73  2.089532 3.042040     0.010  0.020
+## 00760 &lt;NA&gt; 00760   17  1.871113 3.583774     0.026  0.023
+## 04064 &lt;NA&gt; 04064   59  1.931306 3.552921     0.019  0.025
+## 04010 &lt;NA&gt; 04010  169  1.987648 4.770146     0.018  0.028</code></pre>
 </div>
 <div id="step-3-adjust-for-multiple-testing" class="section level1">
-<h1>Step 3: Adjust for Multiple Testing</h1>
-<!-- I haven't included the content from these parts yet, but I hope this example is clear enough! -->
+<h1>Step 3: Adjust for multiple testing</h1>
+<p>PADOG does not perform multiple test adjustment internally so that
+must be performed by the user. We here work with a function from the R
+package base which uses the method by Benjamini and Hochberg by
+default.</p>
+<pre class="r"><code># add adjusted p-value in column Ppadog_adjusted
+PADOG_results$Ppadog_adjusted &lt;- p.adjust(PADOG_results$Ppadog)</code></pre>
 </div>
 <div id="step-4-interpretation-of-results" class="section level1">
-<h1>Step 4: Interpretation of Results</h1>
+<h1>Step 4: Interpretation of results</h1>
+<p>We want to inspect (a part of) the results and interpret the columns
+provided in the results table.</p>
+<pre class="r"><code>head(PADOG_results, n = 10)</code></pre>
+<pre><code>##       Name    ID Size meanAbsT0   padog0 PmeanAbsT Ppadog Ppadog_adjusted
+## 04380 &lt;NA&gt; 04380   66  2.622104 3.832812     0.005  0.002           0.696
+## 04810 &lt;NA&gt; 04810  111  2.326027 5.476170     0.004  0.004           1.000
+## 03010 &lt;NA&gt; 03010   89  5.378671 9.659220     0.014  0.010           1.000
+## 05213 &lt;NA&gt; 05213   23  1.528150 1.461810     0.027  0.010           1.000
+## 05171 &lt;NA&gt; 05171  118  4.788746 8.020661     0.013  0.013           1.000
+## 05417 &lt;NA&gt; 05417  112  2.094534 3.096663     0.015  0.017           1.000
+## 05162 &lt;NA&gt; 05162   73  2.089532 3.042040     0.010  0.020           1.000
+## 00760 &lt;NA&gt; 00760   17  1.871113 3.583774     0.026  0.023           1.000
+## 04064 &lt;NA&gt; 04064   59  1.931306 3.552921     0.019  0.025           1.000
+## 04010 &lt;NA&gt; 04010  169  1.987648 4.770146     0.018  0.028           1.000</code></pre>
+<p>Differential enrichment of a given gene set can now be assessed based
+on the adjusted p-value in column Ppadog_adjusted. For instance: detect
+all gene sets with Ppadog_adjusted &lt; 0.05 as differentially
+enriched.</p>
+<p>Additional columns:</p>
+<ul>
+<li><p>Name: Name of gene set</p></li>
+<li><p>ID: Identifier of gene set</p></li>
+<li><p>Size: number of genes in gene set</p></li>
+<li><p>meanAbsT0: Mean of absolute (moderated) t-statistic of all genes
+that are a member of the given gene set</p></li>
+<li><p>padog0: Mean of abolute weighted moderate t-statistic of all
+genes that are a member of the given gene set</p></li>
+<li><p>PmeanAbsT: significance of of meanAbsT0</p></li>
+<li><p>Ppadog: significance padog0</p></li>
+</ul>
 </div>
 
 
