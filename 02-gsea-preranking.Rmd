@@ -1,13 +1,13 @@
 
-# GSEA Preranking
+# GSEAPreranked
 
 Skip to Chapter 4 Differentiation Expression Analysis if conversion of gene IDs is not needed.
 
 
-In this script, we will go through the process of preparing the required input for GSEAPreranked (which is part of the web-based tool GSEA) \
+In this script, we will go through the process of preparing the required input for GSEAPreranked (which is part of the web-based tool GSEA). \
 Note that in contrast to the remaining tools considered in this work, it is recom-
-mended for GSEAPreranked to provide the input with the genes ID HGNC (HUGO) gene
-symbols. The reason for this is described in the supplement of this work.
+mended for GSEAPreranked to provide the input with the genes ID as HGNC (HUGO) gene
+symbols. The reason for this is described in the supplement of the paper.
 
 Therefore, our starting point is the pre-filtered gene expression data set with the
 gene IDs in the initial (Ensembl) ID format.  
@@ -41,7 +41,7 @@ BiocManager::install("dplyr")
 ```
 
 
-Load libraries: 
+**Load libraries**: 
 
 ```{r, message = FALSE, warning = FALSE}
 library(clusterProfiler)
@@ -55,22 +55,22 @@ library(dplyr)
 
 Description of the libraries: 
 
-- clusterProfiler: To convert Ensembl ID format to HGNC (HUGO) gene symbols
+- **clusterProfiler**: To convert Ensembl ID format to HGNC (HUGO) gene symbols
 
-- org.Hs.eg.db: To indicate that we work with human gene expression data (must be adapted when working with a different organism)
+- **org.Hs.eg.db**: To indicate that we work with human gene expression data (must be adapted when working with a different organism)
 
-- tweeDEseqCountData: To obtain the conditions of the samples in the gene expression data set
+- **tweeDEseqCountData**: To obtain the conditions of the samples in the gene expression data set
 
-- limma: For differential expression analysis (based on which the gene ranking is generated)
+- **limma**: For differential expression analysis (based on which the gene ranking is generated)
 
-- edgeR: For differential expression analysis (based on which the gene ranking is generated)
+- **edgeR**: For differential expression analysis (based on which the gene ranking is generated)
 
-- DESeq2: For differential expression analysis (based on which the gene ranking is generated)
+- **DESeq2**: For differential expression analysis (based on which the gene ranking is generated)
 
-- dplyr: To unify the relevant columns in the results of differential expression analysis across the three methods
+- **dplyr**: To unify the relevant columns in the results of differential expression analysis across the three methods
 
 
-### Load data 
+## Load data 
 
 We will proceed with the gene expression data set which was pre-filtered using edgeR's filterByExpr. 
 
@@ -93,7 +93,7 @@ expression_data_filtered <- expression_data_filterByExpr
 
 ## Step 1: Convert Ensembl IDs to HGNC symbols
 
-#### (i) Obtain the mapping of initial (Ensembl) gene IDs to required HGNC gene symbols:
+**(i) Obtain the mapping of initial (Ensembl) gene IDs to required HGNC gene symbols**
 
 
 ```{r}
@@ -104,19 +104,20 @@ bitr_EnsToSymb <- bitr(geneID = rownames(expression_data_filtered),
 ```
 Function arguments: 
 
-- gene IDs: gene IDs to be converted (stored in the rownames of the gene expression data set)
+- **geneID**: gene IDs to be converted (stored in the rownames of the gene expression data set)
 
-- fromType: initial gene ID format that is to be converted
+- **fromType**: initial gene ID format that is to be converted
 
-- toType: gene ID format to be converted to 
+- **toType**: gene ID format to be converted to 
 
-- OrgDb: annotation data base of organisms from which the gene expression measurements originate. The corresponding argument must be loaded as a library (see above)
+- **OrgDb**: annotation data base of organisms from which the gene expression measurements originate. The corresponding argument must be loaded as a library (see above)
 
 Note that the arguments "fromType" and "toType" must be set as one of the following, depending on the given and the required gene ID format: \
+
 ACCNUM, ALIAS, Ensembl, EnsemblPROT, EnsemblTRANS, ENTREZID, ENZYME, EVIDENCE, EVIDENCEALL, GENENAME, GENETYPE, GO, GOALL, IPI, MAP, OMIM, ONTOLOGY, ONTOLOGYALL, PATH, PFAM, PMID, PROSITE, REFSEQ, SYMBOL, UCSCKG, UNIPROT.
 
 
-#### (ii) Concatenate the initial gene expression data set with the mapping from initial (Ensembl) to required HGNC symbols
+**(ii) Concatenate the initial gene expression data set with the mapping from initial (Ensembl) to required HGNC symbols**
 
 Merge by row names of expression data set and ENSEMBL ID of gene ID mapping. 
 
@@ -131,21 +132,19 @@ expression_data_merged <- merge(x = expression_data_filtered,
 
 Description of function arguments: 
 
-- by.x and by.y specify by which columns expression_data_filterByExpr and bitr_EnsToEntr are concatenated: 
+- **by.x** and **by.y**: specify by which columns in expression_data_filterByExpr and bitr_EnsToEntr, respectively, both data sets are concatenated: 
 
-- by.x = 0: use row names of expression_data_filterByExpr (the row names contain the gene IDs)
+  + **by.x = 0**: use row names of expression_data_filterByExpr (the row names contain the gene IDs)
 
-- by.y = "ENSEMBL": use the column that contains the Ensembl gene IDs 
+  + **by.y = "ENSEMBL"**: use the column that contains the Ensembl gene IDs 
 
 
-As we can see from the document "Instructions_GeneID_Conversion_DuplicatesRemoval.R", we work with three separate ways to remove the duplicate gene IDs that result from
-gene ID conversion. We will apply all three of these approaches to removal. 
+Analogous Chapter 'Gene ID conversion and removal of the resulting duplicated gene IDs', we work with three separate ways to remove the duplicate gene IDs that result fromvgene ID conversion. We will apply all three of these approaches to removal. 
 
-## Step 2: Remove the duplicated gene IDs
+## Step 2: Take a closer look at the duplicated gene IDs
 
-### (i) Take a closer look at the duplicates
 
-#### Case 1: single ENSEMBL IDs are mapped to multiple HGNC symbols
+**Case 1: single ENSEMBL ID is mapped to multiple HGNC symbols**
 
 In this case, we denote the corresponding ENSEMBL IDs as the duplicated IDs
 
@@ -154,7 +153,7 @@ In this case, we denote the corresponding ENSEMBL IDs as the duplicated IDs
 # times an Ensembl ID appears more than once in the mapping
 sum(duplicated(bitr_EnsToSymb$ENSEMBL))
 # determine all duplicated ENSEMBL gene IDS (i.e. all ENSEMBL gene IDs that were mapped to multiple distinct HGNC gene symbols):
-dupl_ensembl<-unique(bitr_EnsToSymb$ENSEMBL[duplicated(bitr_EnsToSymb$ENSEMBL)])
+dupl_ensembl <- unique(bitr_EnsToSymb$ENSEMBL[duplicated(bitr_EnsToSymb$ENSEMBL)])
 # number of ENSEMBL IDs that have at least one duplicate
 length(dupl_ensembl)
 ```
@@ -169,25 +168,32 @@ head(duplicated_conversion_ens, n = 6)
 ```
 We can see perfectly that these Ensembl ID are each mapped to multiple individual HGNC symbols. 
 
-#### CASE 2: multiple ENSEMBL IDs are mapped to the same HGNC symbol
+**Case 2: multiple ENSEMBL IDs are mapped to the same HGNC symbol**
 
 In this case, we denote the corresponding HGNC symbols as the duplicated IDs. 
 
 Obtain number of cases in which multiple distinct Ensembl IDs are converted to the same HGNC gene symbol
+
 ```{r}
 # in these cases, the corresponding HGNC symbols appear repeatedly in the mapping:
 sum(duplicated(bitr_EnsToSymb$SYMBOL))
+
 # determine all HGNC gene symbols affected by this duplication
-dupl_symbol<-unique(bitr_EnsToSymb$SYMBOL[duplicated(bitr_EnsToSymb$SYMBOL)])
-# number of HGNC symbols that have at least one duplicate
+dupl_symbol <- unique(bitr_EnsToSymb$SYMBOL[duplicated(bitr_EnsToSymb$SYMBOL)])
+
+# inspect the first few HGNC symbols affected by a duplication
+head(dupl_symbol, n = 10)
+
+# get number of HGNC symbols that have at least one duplicate
 length(dupl_symbol)
 ```
 
 
 In the following, we want to take a look at the conversion pattern of some of the duplicated HGNC symbols. 
+
 ```{r}
 # subset the conversion pattern to that of the duplicated HGNC symbols
-duplicated_conversion<-bitr_EnsToSymb[bitr_EnsToSymb$SYMBOL %in% dupl_symbol,]
+duplicated_conversion <- bitr_EnsToSymb[bitr_EnsToSymb$SYMBOL %in% dupl_symbol,]
 
 # for visibility: order the conversion pattern by the HGNC symbols
 duplicated_conversion <- duplicated_conversion[order(duplicated_conversion$SYMBOL),]
@@ -196,28 +202,42 @@ duplicated_conversion <- duplicated_conversion[order(duplicated_conversion$SYMBO
 head(duplicated_conversion, n = 6 )
 ```
 
-### (ii) Remove the duplicated gene IDs 
+## Step 3: Remove the duplicated gene IDs 
 
-For the subsequent analysis (whether differential expression analysis of gene set analysis), we need to deal with the duplicated gene IDs and remove them in a suitable way such that only one unique gene expression measurement among the duplicates remains. There is no recommended way to proceed, i.e. no common approach presented in an official scientific puplication, but instead several approaches suggested by users in corresponding user platforms, generally, the manner of duplicate gene ID removal is performed at the discretion of the user. We therefore present three approaches to duplicate gene ID removal. 
+For the subsequent analysis (whether differential expression analysis of gene set analysis), we need to deal with the duplicated gene IDs and remove them in a suitable way such that only one unique gene expression measurement among the duplicates remains. There is no recommended way to proceed, i.e. no common approach presented in official scientific puplicatios, but instead several approaches suggested by users in corresponding user platforms. We have observed that the manner of duplicate gene ID removal seems to be chosen at the discretion of the user. We therefore present three approaches to duplicate gene ID removal. 
 
 
-#### Option 1: Keep the duplicate with the lowest subscript 
+### Option 1: Keep the duplicate with the lowest subscript 
 
 This is the simplest approach among the three. 
 
+**1. Remove duplicated HGNC gene symbols**
 ```{r}
-#1. remove duplicated HGNC gene symbols
-exprdat_symbol_dupl1<-expression_data_merged[!duplicated(expression_data_merged$SYMBOL),]
+# indicate which HGNC gene symbols are NO duplicate of any other gene ID
+ind_nodupl <- !duplicated(expression_data_merged$SYMBOL)
+
+# filter the gene expression data set to the genes that are NO duplicate of any other gene ID 
+exprdat_symbol_dupl1 <- expression_data_merged[ind_nodupl,]
+```
 
 
-#2. remove duplicated ENSEMBL gene IDs
-exprdat_symbol_dupl1<-exprdat_symbol_dupl1[!duplicated(exprdat_symbol_dupl1$Row.names),]
-dim(exprdat_symbol_dupl1)
+**2. Remove duplicated ENSEMBL gene IDs**
+```{r}
+# indicate which Ensembl IDs are NO duplicate of any other gene ID 
+ind_nodupl <- !duplicated(exprdat_symbol_dupl1$Row.names)
 
-#3. set HGNC gene symbols as rownames
-rownames(exprdat_symbol_dupl1)<-exprdat_symbol_dupl1$SYMBOL
+# filter the gene expression data set to the genes that are NO duplicate of any other gene ID 
+exprdat_symbol_dupl1 <- exprdat_symbol_dupl1[ind_nodupl,]
+```
+
+**3. Set HGNC gene symbols as rownames**
+```{r}
+rownames(exprdat_symbol_dupl1) <- exprdat_symbol_dupl1$SYMBOL
+
 #Remove columns containing ENSEMBL and HGNC symbols
-exprdat_symbol_dupl1<-subset(exprdat_symbol_dupl1, select=-c(Row.names,SYMBOL))
+exprdat_symbol_dupl1 <- subset(exprdat_symbol_dupl1, select=-c(Row.names,SYMBOL))
+
+# Inspect the dimension of the resulting gene expression data set
 dim(exprdat_symbol_dupl1)
 # we particularly see that the number of columns is now at its initial number
 ```
@@ -228,11 +248,11 @@ exprdat_symbol_dupl1[1:10, 1:10]
 ```
 
 
-#### Option 2: Keep the (rounded) mean expression value of all duplicated gene IDs
+### Option 2: Keep the (rounded) mean expression value of all duplicated gene IDs
 
 Here, we remove duplicated HGNC gene symbols (case 2) before removing the duplicated Ensembl gene IDs (case 1). The reason for this is elaborated below. 
 
-##### (i) Remove the duplicated HGNC gene symbols (case 2)
+**1. Remove the duplicated HGNC gene symbols**
 
 ```{r}
 #generate matrix to contain (rounded) mean expression values of all rows that have same HGNC gene symbol
@@ -254,15 +274,14 @@ dupl_id <- round(colMeans(counts_dupl[,c(2:(ncol(expression_data_merged)-1))]))
 # this matrix is extended by a single row of gene expression data which corresponds to the (rounded) mean expression data that corresponds to the given HGNC gene symbol
 mean_symbol <- rbind(mean_symbol,dupl_id)
 
-
 }
+
+#set corresponding HGNC gene symbols as rownames
+rownames(mean_symbol) <- unique(dupl_symbol)
 
 # after completing the for-loop, mean_symbol contains the mean expression measurements of each HGNC gene symbol which contains duplicates resulting from gene ID conversion
 # We want to take a look at a part of the data set 
 mean_symbol[, 1:9]
-
-#set corresponding HGNC gene symbols as rownames
-rownames(mean_symbol) <- unique(dupl_symbol)
 
 
 # test whether the number of rows in mean_symbol corresponds to the number HGNC symbols
@@ -272,15 +291,13 @@ nrow(mean_symbol) == length(dupl_symbol)
 
 # remove all rows from the expression data whose HGNC symbol has at least one duplicate
 # intuition: we have just dealt with the corresponding rows and do not want them to be considered in the second step (which deals with case 2
-
 exprdat_symbol_dupl2 <- expression_data_merged[!expression_data_merged$SYMBOL %in% dupl_symbol,]
 
-# test whether number of rows in resulting data set equals nrow of inital data set minus number of genes with at least one duplicate
+# test whether the number of rows in resulting data set equals nrow of inital data set minus number of genes with at least one duplicate
 nrow(exprdat_symbol_dupl2) == nrow(expression_data_merged)-nrow(duplicated_conversion)
-dim(exprdat_symbol_dupl2)
 ```
 
-##### (ii) Remove the duplicated ENSEMBL IDs
+**2. Remove the duplicated ENSEMBL IDs**
 
 Caution: Single ENSEMBL IDs that are mapped to multiple HGNC symbol naturally generate identical count data for all corresponding HGNC symbols. It is therefore pointless to compute mean expression values. This is verifiable by looking at data set only containing those ENSEMBL IDs that are mapped by multiple HGNC symbols:
 
@@ -288,7 +305,8 @@ Caution: Single ENSEMBL IDs that are mapped to multiple HGNC symbol naturally ge
 test_dupl_ensembl <- exprdat_symbol_dupl2[exprdat_symbol_dupl2$Row.names %in% dupl_ensembl,]
 
 # take a look at a few entries of the data set:
-test_dupl_ensembl[1:6, 1:6]
+# note that we additionally include the last column of the data set which corresponds to the HGNC symbols
+test_dupl_ensembl[1:6, c(1:5, ncol(test_dupl_ensembl))]
 ```
 We see that those rows that originate from the same Ensembl ID contain identical count data. \
 
@@ -296,63 +314,63 @@ We therefore proceed as in option 1 and use the HGNC symbol that occurs first wh
 ```{r}
 # Keep HGNC symbol that occurs first
 exprdat_symbol_dupl2<-exprdat_symbol_dupl2[!duplicated(exprdat_symbol_dupl2$Row.names),]
+```
 
-# inspect dimension
-dim(exprdat_symbol_dupl2)
 
-#set HGNC symbol as rownames
+**3. Set HGNC symbol as rownames**
+```{r}
 rownames(exprdat_symbol_dupl2)<-exprdat_symbol_dupl2$SYMBOL
 
-#remove any columns containing IDs
+# Remove the columns containing ENSEMBL and HGNC symbols
 exprdat_symbol_dupl2<-subset(exprdat_symbol_dupl2,select= -c(Row.names,SYMBOL))
 
-#add those rows to data set that contain mean expression values of duplicate HGNC symbols
+# Add those rows to the data set that contain mean expression values of duplicate HGNC symbols
 exprdat_symbol_dupl2 <- rbind(exprdat_symbol_dupl2,mean_symbol)
 
-#inspect the dimension of the remaining gene expression data set
+
+#Inspect the dimension of the remaining gene expression data set
 dim(exprdat_symbol_dupl2)
 ```
 
-#### Option 3: Among the duplicates, keep row with highest overall expression values (i.e highest counts across all samples)
+### Option 3: Among the duplicates, keep row with highest overall expression values (i.e highest counts across all samples)
 
-The intuituin behind this approach is that the row with highest counts values has  highest power of being detected as differentially expressed. As in option 2, this applies only to the duplicates that result from multiple ENSEMBL IDs being mapped to the same HGNC symbol. 
+The intuition behind this approach is that the row with highest counts values has  highest power of being detected as differentially expressed. As in option 2, this applies only to the duplicates that result from multiple ENSEMBL IDs being mapped to the same HGNC symbol. 
 
-##### (i) Remove duplicated HGNC symbols
+**1. Remove duplicated HGNC symbols**
 
 ```{r}
-# generate matrix to later contain row with highest count values among ID duplicates this data set is to be filled gradually and with each iteration of the follwing for-loop
+# Generate a matrix to later contain row with highest count values among ID duplicates this data set is to be filled gradually and with each iteration of the follwing for-loop
 highest_count_symbol<-matrix(, nrow=0, ncol=ncol(expression_data_filterByExpr))
 
 
-# for each duplicated HGNC gene symbol separately, we gather all rows with the corresponding gene expression data and then extract the row with the highest overall magnitude of counts
+# For each duplicated HGNC gene symbol separately, we gather all rows with the corresponding gene expression data and then extract the row with the highest overall magnitude of counts
 
 for(i in 1:length(dupl_symbol)){
 
-  # go through each HGNC symbols which occurs multiple times
-  # determine all rows whose HGNC symbols correspond to currently considered HGNC symbol
-  counts_dupl<-expression_data_merged[expression_data_merged$SYMBOL %in% unique(dupl_symbol)[i],]
+# Go through each HGNC symbols which occurs multiple times
+# determine all rows whose HGNC symbols correspond to currently considered HGNC symbol
+counts_dupl<-expression_data_merged[expression_data_merged$SYMBOL %in% unique(dupl_symbol)[i],]
 
-  # order rows in decreasing manner by their number of read counts across all samples
-  order_rowsums<-order(rowSums(counts_dupl[,2:(ncol(counts_dupl)-1)]),decreasing=TRUE)
+# Order rows in decreasing manner by their number of read counts across all samples
+order_rowsums<-order(rowSums(counts_dupl[,2:(ncol(counts_dupl)-1)]),decreasing=TRUE)
   
-  #detect row with highest number of read counts across all samples (i.e. row with rank 1)
-  dupl_id<-counts_dupl[order_rowsums==1,]
+# Detect row with highest number of read counts across all samples (i.e. row with rank 1)
+dupl_id<-counts_dupl[order_rowsums==1,]
   
-  #store corresponding expression
-  highest_count_symbol<-rbind(highest_count_symbol,dupl_id)
+#store corresponding expression
+highest_count_symbol<-rbind(highest_count_symbol,dupl_id)
   
 }
 
 
-#Remove all initial values with HGNC  duplicates from the dataset initial gene expression data set
+#Remove all initial values with HGNC duplicates from the dataset initial gene expression data set
 exprdat_symbol_dupl3<-expression_data_merged[! expression_data_merged$SYMBOL %in% unique(dupl_symbol),]
 ```
 
 
-##### Case 2: Remove duplicated ENSEMBL IDs 
+**2. Remove duplicated ENSEMBL IDs**
 
-As in option 2, it is pointless to detect the row with highest count values as all rows
-that correspond to the same ENSEMBL ID as these rows naturally contain identical count data. We therefore remove the duplicate ENSEMBL ID that occurs first (such as in option 1). 
+As in option 2, it is pointless to detect the row with highest count values as all rows that correspond to the same ENSEMBL ID as these rows naturally contain identical count data. We therefore remove the duplicate ENSEMBL ID that occurs first (such as in option 1). 
 
 ```{r}
 # Keep the corresponding ENSEMBL ID that occurs first
@@ -360,8 +378,10 @@ exprdat_symbol_dupl3<-exprdat_symbol_dupl3[!duplicated(exprdat_symbol_dupl3$Row.
 
 # Add the gene expression rows of all HGNC gene symbols that were initially duplicated
 exprdat_symbol_dupl3<-rbind(exprdat_symbol_dupl3,highest_count_symbol )
+```
 
-#Set HGNC symbols as rownames
+**3. Set HGNC symbols as rownames**
+```{r}
 rownames(exprdat_symbol_dupl3)<-exprdat_symbol_dupl3$SYMBOL
 #Remove any column that contains information on gene IDs
 exprdat_symbol_dupl3<-subset(exprdat_symbol_dupl3, select=-c(Row.names,SYMBOL))
@@ -385,7 +405,7 @@ expression_data_filt_symbol <- exprdat_symbol_dupl1
 
 From the corresponding results table of differential expression analysis, we will later transform certain metrics (i.e. columns) into a gene-level statistic for each gene based on which the gene ranking is generated.
 
-We will proceed analogously to the script "Instructions_Differential_Expression_Analysis", in which we perform differential expression analysis using three established methods, namely
+We will proceed analogously to Chapter 'Differential Expression Analysis', in which we perform differential expression analysis using three established methods, namely
 
 1. voom/limma
 2. DESeq2
@@ -407,7 +427,7 @@ sample_conditions <- pickrell.eset$gender
 Note that the code illustrations are based on the following user manual: \ https://bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf
 
 
-#### (i) Generate the required input object for limma 
+**1. Generate the required input object for limma** 
 
 As described in "Instructions_Differential_Expression_Analysis", the gene expression data set expression_data_filt_symbol is currently a data frame and needs to be converted to a DGEList object. 
 
@@ -419,17 +439,17 @@ y <- DGEList(counts = expression_data_filt_symbol,
 
 Required function arguments: 
 
-- counts: matrix that contains RNA-Seq data (i.e. count data)
+- **counts**: matrix that contains RNA-Seq data (i.e. count data)
 
 Optional function arguments: 
 
-- group: indicates the condition of each sample/library
+- **group**: indicates the condition of each sample/library
   + this argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point.
 
 Note that we leave the remaining arguments in their default state since the corresponding info will be added through the following pipeline of functions. 
 
 
-#### (ii) Normalization 
+**2. Normalization** 
 
 The following piece of code generates a normalization factor for each sample. This accounts for sample-specific effects (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples. 
 
@@ -440,7 +460,7 @@ y <- calcNormFactors(y)
 Note that this function does not transform the count data, but rather generates a normalization factor for each sample which is incorporated into the subsequent analysis separately. 
 
 
-#### (iii) voom transformation 
+**3. voom transformation** 
 
 Note that the voom transformation facilitates the use of the subsequent functions that were initially developed for microarray data. 
 
@@ -454,7 +474,7 @@ design_matrix <- model.matrix(~sample_conditions)
 y <- voom(y, design = design_matrix)
 ```
 
-#### (iv) Differential expression analysis 
+**4. Differential expression analysis**
 
 ```{r}
 # Fit a linear model for each gene
@@ -468,7 +488,7 @@ DE_results_limma <- topTable(y, number =  nrow(y))
 # Note that number = nrow(y) ensures that all genes are displayed in results, not just a subset
 ```
 
-#### (v) Rename columns in results table
+**5. Rename columns in results table**
 
 This step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL. 
 
@@ -482,7 +502,7 @@ DE_results_limma <- as.data.frame(DE_results_limma)
 DE_results_limma <- dplyr::rename(DE_results_limma, p_adj = `adj.P.Val`)
 ```
 
-Inspect the first 10 genes in the results table: 
+**6. Inspect the first 10 genes in the results table **
 ```{r}
 head(DE_results_limma, n = 10)
 ```
@@ -493,12 +513,12 @@ The official DESeq2 vignette can be found through the following link: \
 http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
 
 
-#### (i) Generate the required input object for DESeq2 
+**1. Generate the required input object for DESeq2**
 
 DESeq2 operates on the format DESeqDataSet which contains information on the count data, the conditions of the samples and the design (for further information see below). Note that for gene expression data sets that must be imported to R, additional steps are necessary before the following code can be run. 
 
 
-##### Generate a data frame which contains the condition of each sample
+**Generate a data frame which contains the condition of each sample**
 
 Here, the information on the sample conditions is the only column in the data frame. However, if further variables (such as batch effects) are to be controlled for, the corresponding variables must additionally be added to coldata. 
 
@@ -523,7 +543,7 @@ coldata$condition <- factor(coldata$condition,
                             labels = c("untreated","treated"))
 ```
 
-##### Generate the DESeqDataSet 
+**Generate the DESeqDataSet**
 
 
 ```{r}
@@ -534,36 +554,34 @@ dds <- DESeqDataSetFromMatrix(countData = expression_data_filt_symbol,
 
 Relevant function arguments: 
 
-- countData: count data from gene expression data set
+- **countData**: count data from gene expression data set
 
-- colData: data frame that contains information on the samples (see above)
+- **colData**: data frame that contains information on the samples (see above)
   + conditions of the samples (required) and possibly further variables to correct for (such as batch effects)
 
-- design: indicates which variables from colData are used for modelling
-  + more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model
+- **design**: indicates which variables from colData are used for modelling
+  + **more detailed**: the argument design is used to estimate the dispersions and the log2 fold changes of the model
   + if more than one variable from colData are used in argument design (e.g. a second variable "batch"), the syntax changes to the following formula: design ~ batch + condition
   + make sure that the variable of interest (here: variable that represents conditions of the samples) is placed at the end of the formula
 
 
-#### (ii) Differential expression analysis 
+**2. Differential expression analysis** 
 
 ```{r, message = FALSE}
 # 1. Perform default differential expression analysis
 dds <- DESeq(dds)
 # 2. Generate results table which provides
 DE_results_DESeq2 <- results(dds)
-
 ```
 Description of the functions: 
 
-1. DESeq(): Estimation normalization factors, estimation of dispersions, fitting of generalized linear model, Wald statistics
+- **DESeq()**: Estimation normalization factors, estimation of dispersions, fitting of generalized linear model, Wald statistics
 
-2. results(): Provides base mean across all samples, estimated log2 fold changes, standard errors, test statistics, p-values, adjusted p-values
+2. **results()**: Provides base mean across all samples, estimated log2 fold changes, standard errors, test statistics, p-values, adjusted p-values
 
-#### (iii) Rename columns in results table
+**3. Rename columns in results table**
 
 This step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL. 
-
 
 A renaming of some columns (such as adjusted p-value) is necessary in the context of these illustrations since the different methods for differential expression analysis typically differ in the column names of the results tables. A unification of the column names is required so that we can use the same code to illustrate further conduct of GSA in the subsequent code. 
 
@@ -576,7 +594,7 @@ DE_results_DESeq2 <- as.data.frame(DE_results_DESeq2)
 DE_results_DESeq2 <- dplyr::rename(DE_results_DESeq2, p_adj = "padj")
 ```
 
-Inspect the first 10 genes in the results table: 
+**4. Inspect the first 10 genes in the results table**
 ```{r}
 head(DE_results_DESeq2, n = 10)
 ```
@@ -586,7 +604,7 @@ head(DE_results_DESeq2, n = 10)
 
 The instructions for edgeR are based on the following vignette: \ https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf
 
-#### (i) Generate the required input object for edgeR 
+**1. Generate the required input object for edgeR**
 
 Store the expression data with corresponding sample conditions in object of class DGEList
 
@@ -596,17 +614,17 @@ y <- DGEList(counts = expression_data_filt_symbol,
 ```
 Required function arguments: 
 
-- counts: matrix that contains RNA-Seq data (i.e. count data)
+- **counts**: matrix that contains RNA-Seq data (i.e. count data)
 
 Optional function arguments: 
 
-- group: indicates condition of each sample/library
+- **group**: indicates condition of each sample/library
   + This argument must be specified sooner or later (such as in subsequent functions) so we just specify it at this point
 
 Note that we leave the remaining arguments in their default state since the corresponding info will be added through the subsequent pipeline of functions.
 
 
-#### (ii) Normalization 
+**2. Normalization**
 
 The following piece of code generates a normalization factor for each sample. This accounts for sample-specific effects (such as differences in library sizes and effects of compositionality). If not accounted for, these effects prevent a comparison between the samples
 
@@ -617,7 +635,7 @@ y <- calcNormFactors(y)
 
 Note: this function does not transform the count data, but rather generates a normalization factor for each sample which is incorporated into the subsequent analysis separately. 
 
-#### (iii) Estimation of the dispersion 
+**3. Estimation of the dispersion**
 
 Estimate the common and tagwise dispersion which quantify the variation of the true abundance of a given gene between different samples and is required to assess differential expression realistically. 
 
@@ -625,7 +643,7 @@ Estimate the common and tagwise dispersion which quantify the variation of the t
 y <- estimateDisp(y)
 ```
 
-#### (iv) Differential expression analysis 
+**4. Differential expression analysis**
 
 ```{r}
 # Test each gene for differential expression:
@@ -638,8 +656,7 @@ DE_results_edgeR <- topTags(DE_results_edgeR, n = nrow(DE_results_edgeR))
 # n = nrow(DE_results) ensures the results of all genes whose differential expression was assessed are displayed
 ```
 
-#### (v) Rename columns in results table 
-
+**5.Rename columns in results table**
 
 This step is not required for differential expression analysis or for the subsequent use of gene set analysis IN GENERAL. 
 
@@ -654,7 +671,7 @@ DE_results_edgeR <- as.data.frame(DE_results_edgeR)
 DE_results_edgeR <- dplyr::rename(DE_results_edgeR, p_adj = "FDR")
 ```
 
-Inspect the first 10 genes in the results table:
+**6. Inspect the first 10 genes in the results table**
 ```{r}
 head(DE_results_edgeR, n = 10)
 ```
@@ -673,8 +690,8 @@ we will also generate three gene rankings, one for each of these three methods.
 
 
 The formula of the gene-level ranking metric is \ 
-$ -1 * log10(p-value) * sign(log fold change)$. \
-Note that by p-value, we refer to the non-adjusted p-value. 
+$$ (-1) * \log_{10}(p\text{-value}) * \text{sign}(\text{log fold change})$$. 
+Note that by "p-value", we refer to the non-adjusted p-value. 
 
 
 ### Option 1: Generate gene ranking from limma/voom results 
@@ -700,18 +717,18 @@ rankvec_limma <- sort(rankvec_limma, decreasing=TRUE)
 ```
 
 
-Inspect the first 10 genes from the gene ranking 
+**Inspect the first 10 genes from the gene ranking**
 ```{r}
 head(rankvec_limma, n = 10)
 ```
 
 ### Option 2: Generate gene ranking from DESeq2 results 
 
-##### (i) Shrink estimated log fold change values
+**1.Shrink estimated log fold change values**
 
-Before generating the gene ranking from the DESeq2 results, we need to perform an additional shrinkage that is specific to DESeq2. The intuition behind the shrinkage of log fold change values is as follows: As mentioned in the paper, RNA-Seq data consists (in its rare form) of count data in which is inherently heteroscedastic, i.e. the variance of the count data depends on the mean count of the count data. It is observable that ratios between counts are considerably noisier in low magnitudes of counts compared to higher magnitudes, i.e.the log fold changes between both conditions are higher if the overall magnitude of counts is lower, independent of the acual extent to which the gene is differentially expressed between both samples. DESeq2 addresses this issue by shrinking the estimated log fold changes in the direction of 0. The magnitude of shrinkage is higher if the available information for a gene is lower (which may be because of a low magnitude of counts, a high dispersion or few degrees of freedom.) A more detailed description is provided in the DESeq2 paper by Love et al. (2014). \
+Before generating the gene ranking from the DESeq2 results, we need to perform an additional shrinkage that is specific to DESeq2. The intuition behind the shrinkage of log fold change values is as follows: As mentioned in the paper, RNA-Seq data consists (in its rare form) of count data which is inherently heteroscedastic, i.e. the variance of the count data depends on the mean count of the count data. It is observable that ratios between counts are considerably noisier in the lower magnitudes of counts compared to higher magnitudes, i.e.the log fold changes between both conditions are higher if the overall magnitude of counts is lower, independent of the actual extent to which the gene is differentially expressed between both conditions. DESeq2 addresses this issue by shrinking the estimated log fold changes in the direction of 0. The magnitude of shrinkage is higher if the available information for a gene is lower (which may be because of a low magnitude of counts, a high dispersion or few degrees of freedom.) A more detailed description is provided in the DESeq2 paper by Love et al. (2014). \
 
-The shrinkage is performed on object dds, which is a result of the function DESeq(): 
+The shrinkage is performed on object dds, which is a result of the function *DESeq()*: 
 ```{r, message = FALSE}
 if (!any(installed.packages() %in% "apeglm")) {
   BiocManager::install("apeglm", update = FALSE, ask = FALSE)
@@ -723,10 +740,10 @@ DE_results_DESeq2_shrink <- lfcShrink(dds,
 
 Function arguments: 
 
-- type: method to perform shrinkage
+- **type**: method to perform shrinkage
   + we opt for the default "apeglm" but you can choose from two alternative options as well
 
-- coef: indicate the coefficients to be shrunk
+- **coef**: indicate the coefficients to be shrunk
   + we can obtain the right argument from the following function call:
 
 ```{r}
@@ -744,9 +761,9 @@ DE_results_DESeq2_shrink <- as.data.frame(DE_results_DESeq2_shrink)
 head(DE_results_DESeq2_shrink, n = 10)
 ```
 Note that the estimated log fold change values (column log2FoldChange) are smaller (in absolute terms!) compared to the regular DESeq2 results, while the (adjusted and non-adjusted) p-value remain unchanged. \
-Also we have not performed shrinkage in Instructions_Differential_Expression_Analysis as there, the goal was to get the list of differentially expressed genes which are detected solely based on the adjusted p-value. 
+Also, we have not performed shrinkage in Chapter 'Differential Expression Analysis' as there, the goal was to get the list of differentially expressed genes which are detected solely based on the adjusted p-value. 
 
-##### (ii) Generate the gene ranking
+**2. Generate the gene ranking**
 
 ```{r}
 # 1. Subset the gene expression data set to those genes that have a p-value (i.e.
@@ -798,12 +815,12 @@ names(rankvec_edgeR) <- rownames(DE_results_noNA)
 rankvec_edgeR <- sort(rankvec_edgeR, decreasing = TRUE)
 ```
 
-Inspect the first 10 genes from the gene ranking 
+**Inspect the first 10 genes from the gene ranking**
 ```{r}
 head(rankvec_edgeR, n = 10)
 ```
 
-Note that gene RPS4Y1 has a ranking value of Inf (infinity). The reason behind this is that the gene has an adjusted p-value of 0 in the edgeR results of differential expression analysis (as already observed above). We have to solve this issue, however, there is no common default approach. For the illustration purposes here, we replace the value Inf by the second biggest ranking value in the ranking. 
+Note that gene RPS4Y1 has a ranking value of "Inf" (infinity). The reason behind this is that the gene has an adjusted p-value of $0$ in the edgeR results of differential expression analysis (as already observed above). We have to solve this issue, however, there is no common default approach. For the illustration purposes here, we replace the value Inf by the second biggest ranking value in the ranking. 
 
 ```{r}
 # replace value Inf by second biggest value in the ranking 
@@ -832,15 +849,15 @@ write.table(x = rankvec_limma,
 
 Function arguments: 
 
-- x: object to be exported to a text file 
+- **x**: object to be exported to a text file 
 
-- file: location (i.e. folder and file) in which the object is to be stored 
+- **file**: location (i.e. folder and file) in which the object is to be stored 
 
- - quote = FALSE ensures that none of the characters (in this case gene and sample identifiers) are surrounded by double quotes
+ - **quote = FALSE** ensures that none of the characters (in this case gene and sample identifiers) are surrounded by double quotes
  
-- row.names = TRUE ensures that the gene IDs are included in the export 
+- **row.names = TRUE** ensures that the gene IDs are included in the export 
 
-- col.names = TRUE ensures that no gene information is in the first row since the web-based tool ignores whatever is in the first row
+- **col.names = TRUE** ensures that no gene information is in the first row since the web-based tool ignores whatever is in the first row
 
 
 ## Step 6: Further preparation in Excel 
