@@ -424,7 +424,7 @@ sample_conditions <- pickrell.eset$gender
 
 ### Option 1: Differential expression analysis using limma 
 
-Note that the code illustrations are based on the following user manual: \ https://bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf
+Note that the code illustrations are based on the following user manual: \ (https://bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf)
 
 
 **1. Generate the required input object for limma** 
@@ -560,8 +560,11 @@ Relevant function arguments:
   + conditions of the samples (required) and possibly further variables to correct for (such as batch effects)
 
 - **design**: indicates which variables from colData are used for modelling
+
   + **more detailed**: the argument design is used to estimate the dispersions and the log2 fold changes of the model
+  
   + if more than one variable from colData are used in argument design (e.g. a second variable "batch"), the syntax changes to the following formula: design ~ batch + condition
+  
   + make sure that the variable of interest (here: variable that represents conditions of the samples) is placed at the end of the formula
 
 
@@ -602,7 +605,7 @@ head(DE_results_DESeq2, n = 10)
 
 ### Option 3: Differential expression analysis using edgeR 
 
-The instructions for edgeR are based on the following vignette: \ https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf
+The instructions for edgeR are based on the following vignette: \ (https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf)
 
 **1. Generate the required input object for edgeR**
 
@@ -863,6 +866,6 @@ Function arguments:
 ## Step 6: Further preparation in Excel 
 
 For this step, follow the instructions on the very bottom of the following link: \
-http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats
+(http://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats)
 
 Then, scroll to section "RNK: Ranked list file format (*.rnk)". 

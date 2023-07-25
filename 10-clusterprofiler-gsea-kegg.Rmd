@@ -1,7 +1,7 @@
 
 # (PART) With Gene ID Conversion {-}
 
-# Cluster Profiler: GSEA KEGG
+# ClusterProfiler's GSEA (with gene set database KEGG)
 
 In this script, we will do the following two things: 
 - 1. Based on the results of differential expression analysis from voom/limma, DESeq2, and edgeR, we will go through 

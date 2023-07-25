@@ -8,7 +8,7 @@ In this script, we will
 
 2. generate the alternative universe as part of the researchers' degrees of freedom
 
-for the web-based tool DAVID
+for the web-based tool DAVID.
 
 
 The required input object for DAVID consists of a list of differentially expressed genes.\ 
@@ -24,7 +24,7 @@ For this part of the instructions, there are no further libraries required.
 
 ## Load data 
 
-Both objects, the list of differentially expressed genes as well as the alternative universe can be extracted from the results table of differential expression analysis. Note that DAVID works a variety of gene ID formats, including Ensembl ID. 
+Both objects, the list of differentially expressed genes as well as the alternative universe, can be extracted from the results table of differential expression analysis. Note that DAVID works on a variety of gene ID formats, including Ensembl ID. 
 
 Here, we will illustrate the process for the limma results only since the process is identical for all methods for differential exression analysis (due to the unification of the column names that refer to the adjusted p-values). 
 
@@ -52,7 +52,7 @@ head(DE_results, n  = 10)
 
 ## Prepare and export required input oject 
 
-### Step 1: Generate required input object 
+**Step 1: Generate required input object**
 
 From the results table of differential expression analysis, we generate a list of differentially expressed genes. 
 
@@ -67,16 +67,20 @@ table(ind_DE)
 DEG_vec <- rownames(DE_results)[ind_DE]
 ```
 
-We take a look at the first genes in vector of differentially expressed genes 
+We take a look at the first genes in the vector of differentially expressed genes and also want to look at the number of differentially expressed genes.
 
 ```{r}
+# inspect the first genes from the vector
 head(DEG_vec, n = 10)
+
+# get the number of differentially expressed genes
+length(DEG_vec)
 ```
 
 Note that in this specific example, there are very few differentially expressed genes. 
 
 
-### Step 2: Export vector of differentially expressed genes
+**Step 2: Export the vector of differentially expressed genes**
 
 We store the vector of differentially expressed genes in the file "DEG_vec.txt" in the folder "Input_Objects_DAVID" (which is a subfolder of the folder "data"). 
 
@@ -96,9 +100,9 @@ path <- "./data/Input_Objects_DAVID/DEG_vec.txt"
 The file "DEG_vec.txt" should now have appeared in the folder "Input_Objects_DAVID". 
 
 
-### Step 3: Upload to DAVID
+**Step 3: Upload to DAVID**
 
-The resulting .txt file can be directly uploaded to the DAVID website: https://david.ncifcrf.gov/ 
+The resulting .txt file can be directly uploaded to the DAVID website: https://david.ncifcrf.gov/
 
 
 
@@ -108,7 +112,9 @@ The resulting .txt file can be directly uploaded to the DAVID website: https://d
 In this part, we will illustrate how to create an alternative universe to DAVID, which is a researchers' degree of freedom. It is important to note that the intention behind going through the researchers' degrees of freedom is to give you an understanding of what you can do to adapt the given (parameter) setting to the research question. It is even more important to keep in mind that the intention behind going through these flexible parameters is NOT to change them in order to help you obtain the most preferable results by systematically changing these parameters since such behaviour would correspond to "cherry-picking". Any changes in the parameter choice must be documented transparently.
 
 
-### Step 1: Generate alternative universe
+### Change 1: Alternative universe
+
+**Step 1: Generate alterative universe**
 
 For the alternative universe, we want to consider all genes whose differential expression was measured in the experiment For some methods for differential expression analysis, such as DESeq2, the adjusted p-values of some genes are set to NA which means that these genes cannot be detected as neither differentially expressed nor not differentially expressed. We therefore want to remove these from the universe.
 
@@ -127,7 +133,7 @@ Inspect the first few genes from the universe
 head(alternative_universe, n = 10)
 ```
 
-### Step 2: Export alternative universe
+**Step 2: Export alternative universe**
 
 We store the vector of differentially expressed genes in the file "alternative_universe.txt" in the folder "Input_Objects_DAVID" (which is a subfolder of the folder "data"). 
 
