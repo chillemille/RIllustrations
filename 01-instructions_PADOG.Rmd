@@ -122,8 +122,8 @@ Observe that the number of genes has been reduced compared to the original (unfi
 
 ### Option 2: Simpler Pre-filtering approach (proposed by DESeq2)  
 
-A simpler approach for pre-filtering has been proposed by the method for differential expression analysis DESeq2 (see file 'Instructions_Differential_Expression_Analysis'. In this approach, only those genes are kept for further analysis that have a pre-specified number of counts X (such as 10) across all samples. A higher value of X thereby leads to more genes being removed. \
-Note that DESeq2 proposes a stricter version of pre-filtering in which those genes are kept which have X number of counts in at least Y samples. \
+A simpler approach for pre-filtering has been proposed by the method for differential expression analysis DESeq2. In this approach, only those genes are kept for further analysis that have a pre-specified number of counts $X$ (such as 10) across all samples. A higher value of $X$ thereby leads to more genes being removed. \
+Note that DESeq2 proposes a stricter version of pre-filtering in which those genes are kept which have $X$ number of counts in at least $Y$ samples. \
 Note that none of the these two "simpler" approaches to pre-filtering take differences in library size into account. 
 
 **step 1: Pre-Filtering**

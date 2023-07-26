@@ -4,10 +4,10 @@
 Skip to Chapter 4 Differentiation Expression Analysis if conversion of gene IDs is not needed.
 
 
-In this script, we will go through the process of preparing the required input for GSEAPreranked (which is part of the web-based tool GSEA). \
+In this script, we will go through the process of preparing the required input for GSEAPreranked [@subramanian2005gene; @mootha2003pgc] (which is part of the web-based tool GSEA [@subramanian2005gene; @mootha2003pgc] ). \
 Note that in contrast to the remaining tools considered in this work, it is recom-
 mended for GSEAPreranked to provide the input with the genes ID as HGNC (HUGO) gene
-symbols. The reason for this is described in the supplement of the paper.
+symbols [@seal2023genenames]. The reason for this is described in the supplement of the paper.
 
 Therefore, our starting point is the pre-filtered gene expression data set with the
 gene IDs in the initial (Ensembl) ID format.  
@@ -72,7 +72,7 @@ Description of the libraries:
 
 ## Load data 
 
-We will proceed with the gene expression data set which was pre-filtered using edgeR's filterByExpr. 
+We will proceed with the gene expression data set which was pre-filtered using edgeR's *filterByExpr()*. 
 
 ```{r}
 load("./data/Results_PreFiltering/expression_data_filterByExpr.Rdata")

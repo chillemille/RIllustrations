@@ -82,7 +82,7 @@ head(DEG_vec, n = 10)
 
 ### step 2: Run clusterProfiler's ORA 
 
-ORA can be run with the common geneset databases KEGG and GO as well as user-defined gene set databases. Here, we focus on the two common gene set databases GO and KEGG 
+ORA can be run with the common geneset databases KEGG and GO as well as user-defined gene set databases. Here, we focus on the two common gene set databases GO and KEGG. 
 
 #### option 1: gene set database GO
 Here, we work the the subontology specified by default, namely Molecular Function ("MF")
@@ -101,8 +101,11 @@ head(ORA_results_GO , n = 10)
 
 
 Function arguments: 
+
 - **gene**: vector of differentially expressed genes 
+
 - **OrgDb**: annotation package for organism at hand (here: human)
+
 - **ont**: subontology ("MF" by default, alternatives: "BP" and "CC")
 
 

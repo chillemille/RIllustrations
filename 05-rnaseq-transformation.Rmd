@@ -99,13 +99,13 @@ Function arguments:
 
 **Step 2: Normalization**
 
-Note that we here use the default normalization method TMM ("Trimmed mean of M-values"). Other choices for normalization can be specified in the argument "method" in function *calcNormFactors()*. 
+Note that we here use the default normalization method TMM ("Trimmed mean of M-values") [@robinson2010scaling]. Other choices for normalization can be specified in the argument "method" in function *calcNormFactors()*. 
 
 ```{r}
 counts_voom <- calcNormFactors(counts_voom)
 ```
 
-*Step 3: Run voom* 
+**Step 3: Run voom** 
 
 Note that we do NOT make use of the precision weights that are an official part of voom. Instead, we only proceed with the cpm-transformed (and normalized) gene expression measurements. 
 
@@ -127,7 +127,7 @@ Inspect the first few entries of the transformed RNA-Seq data set.
 expression_data_voomtransformed_Entrez[1:10, 1:5]
 ```
 
-### Approach 2: Transformation using DESeq2's VarianceStabilizingTransformation 
+### Approach 2: Transformation using DESeq2's VarianceStabilizingTransformation [@love2014moderated]
 
 **Step 1: generate a data frame to contain the condition of each sample**
 

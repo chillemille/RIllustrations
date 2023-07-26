@@ -111,7 +111,7 @@ dds_Ensembl
 **Step 2: Shrink estimated log fold change values**
 
 The intuition behind shrinkage of log fold change values is that, as mentioned in the paper, RNA-Seq data consists (in its raw form) of count data which is inherently heteroscedastic, i.e. the variance of the count data depends on the mean count of the count data. It is observable that ratios between counts are considerably noisier in low magnitudes of counts compared to higher magnitudes, i.e. the log fold changes between both conditions are higher if the overall magnitude of counts is lower. \
-DESeq2 addresses this issue by shrinking the estimated log fold changes in the direction of 0 the magnitude of shrinkage is higher if the available information for a gene is lower (which may be because of a low magnitude of counts, a high dispersion or few degrees of freedom.). A more detailed description is provided in the DESeq2 paper by Love et al. (2014).
+DESeq2 addresses this issue by shrinking the estimated log fold changes in the direction of 0 the magnitude of shrinkage is higher if the available information for a gene is lower (which may be because of a low magnitude of counts, a high dispersion or few degrees of freedom.). A more detailed description is provided in the DESeq2 paper by Love et al. (2014) [@love2014moderated].
 
 Perform shrinkage:
 ```{r, message = FALSE}

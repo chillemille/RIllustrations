@@ -3,8 +3,11 @@
 
 
 In this script, we will perform differential expression analysis for each of the three parametric methods: 
+
 - voom/limma
+
 - DESeq2 
+
 - edgeR 
 
 Here, we illustrate this process for two gene ID format Entrez IDs, while we additionally present the identical process for the format Ensembl ID in the R script "Instructions_Differential_Expression_Analysis.R".
@@ -120,7 +123,7 @@ Note that this function does not transform the count data, but rather generates 
 
 **3. voom transformation** 
 
-Perform the voom transformation to make limma, which was initially developed for microarray measurements, available to RNA-Seq data. voom transforms the RNA-Seq data to log counts-per-million and generates a precision weight for each entry in the gene expression data sets to be incorporated into the limma pipeline. 
+Perform the voom [@law2014voom] transformation to make limma, which was initially developed for microarray measurements, available to RNA-Seq data. voom transforms the RNA-Seq data to log counts-per-million and generates a precision weight for each entry in the gene expression data sets to be incorporated into the limma pipeline. 
 
 ```{r}
 # (i) generate design matrix (rows correspond to samples, columns indicate which coefficients are to be estimated)

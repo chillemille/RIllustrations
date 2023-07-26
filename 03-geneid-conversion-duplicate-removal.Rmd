@@ -4,7 +4,7 @@
 
 In this script, we will go through the process of 
 
-1. converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID) format 
+1. converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID [@sayers2022database]) format 
 2. removing the resulting duplicated gene IDs 
 
 In this document, we illustrate this process for one of the two pre-filtered gene expression data sets created in Chapter 'Pre-Filtering': 
