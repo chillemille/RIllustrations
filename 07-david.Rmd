@@ -8,8 +8,7 @@ In this script, we will
 
 2. generate the alternative universe as part of the researchers' degrees of freedom
 
-for the web-based tool DAVID.
-
+for the web-based tool DAVID [@huang2009systematic; @huang2009bioinformatics].
 
 The required input object for DAVID consists of a list of differentially expressed genes.\ 
 As an alternative universe, we choose all genes whose differential expression was assessed in the experiment. Note that it is not required to provide an alternative universe. We illustrate its use as part of the researchers' degrees of freedom.
