@@ -1,7 +1,7 @@
 
 # (PART) With Gene ID Conversion {-}
 
-# ClusterProfiler's GSEA (with gene set database KEGG)
+# clusterProfiler's GSEA (with gene set database KEGG)
 
 In this script, we will do the following two things:
 

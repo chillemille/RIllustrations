@@ -1,5 +1,5 @@
 
-# ClusterProfiler's GSEA (with gene set database GO)
+# clusterProfiler's GSEA (with gene set database GO)
 
 
 In this script, we will do the following two things: 
