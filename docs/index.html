@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>About | A Practical Guide through Running Gene Set Analysis in R</title>
+<meta name="author" content="Milena Wünsch and Pat Callahan">
+<meta name="description" content="This is a book about…">
+<meta name="generator" content="bookdown 0.34 with bs4_book()">
+<meta property="og:title" content="About | A Practical Guide through Running Gene Set Analysis in R">
+<meta property="og:type" content="book">
+<meta property="og:description" content="This is a book about…">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="About | A Practical Guide through Running Gene Set Analysis in R">
+<meta name="twitter:description" content="This is a book about…">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Practical Guide through Running Gene Set Analysis in R</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="active" href="index.html">About</a></li>
+<li class="book-part">Common Processing Steps</li>
+<li><a class="" href="pre-filtering.html"><span class="header-section-number">1</span> Pre-filtering</a></li>
+<li><a class="" href="gene-id-conversion-and-removal-of-the-resulting-duplicated-gene-ids.html"><span class="header-section-number">2</span> Gene ID conversion and removal of the resulting duplicated gene IDs</a></li>
+<li><a class="" href="differential-expression-analysis.html"><span class="header-section-number">3</span> Differential expression analysis</a></li>
+<li><a class="" href="transformation-of-the-rna-seq-data.html"><span class="header-section-number">4</span> Transformation of the RNA-Seq data</a></li>
+<li class="book-part">No Gene ID Conversion</li>
+<li><a class="" href="goseq.html"><span class="header-section-number">5</span> GOSeq</a></li>
+<li><a class="" href="clusterprofilers-gsea-with-gene-set-database-go.html"><span class="header-section-number">6</span> clusterProfiler’s GSEA (with gene set database GO)</a></li>
+<li><a class="" href="david.html"><span class="header-section-number">7</span> DAVID</a></li>
+<li><a class="" href="gsea-web-based-tool.html"><span class="header-section-number">8</span> GSEA (web-based tool)</a></li>
+<li class="book-part">With Gene ID Conversion</li>
+<li><a class="" href="clusterprofilers-gsea-with-gene-set-database-kegg.html"><span class="header-section-number">9</span> clusterProfiler’s GSEA (with gene set database KEGG)</a></li>
+<li><a class="" href="clusterprofilers-ora.html"><span class="header-section-number">10</span> clusterProfiler’s ORA</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">11</span> PADOG</a></li>
+<li><a class="" href="gseapreranked.html"><span class="header-section-number">12</span> GSEAPreranked</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="about" class="section level1 unnumbered">
+<h1>About<a class="anchor" aria-label="anchor" href="#about"><i class="fas fa-link"></i></a>
+</h1>
+<p>This book provides a practical illustration of all steps required to run the GSA tools from the selection in this paper. Even though the files build upon each other, the illustrations are structured in a way that each step can be viewed independently.<br>
+The RNA-Seq data set we will use for this illustration is provided by Pickrell et al. (2010) and is part of the library tweeDEseqCountData. The data set contains the RNA-Samples extracted from the lymphoplastoid cell lines of 69 independent Nigerian individuals. The sample conditions (i.e. phenotypes) of the respective samples correspond to the gender of the individuals. Note that in this gene expression data set, the gene IDs are initially in the form of Ensembl IDs.<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content="&lt;p&gt;Fiona Cunningham et al., &lt;span&gt;“Ensembl 2022,”&lt;/span&gt; &lt;em&gt;Nucleic Acids Research&lt;/em&gt; 50, no. D1 (2022): D988–95.&lt;/p&gt;"><sup>1</sup></a></span></p>
+<p>To run the entire pipeline in this illustration, from pre-filtering to the actual GSA tool, several R packages are required. We here provide an overview of all packages that must be installed (if not already available) and loaded. In the sections that correspond to the individual steps, we give an overview of the locally required libraries.</p>
+<div id="required-r-packages" class="section level2" number="0.1">
+<h2>
+<span class="header-section-number">0.1</span> Required R packages<a class="anchor" aria-label="anchor" href="#required-r-packages"><i class="fas fa-link"></i></a>
+</h2>
+<div id="available-on-cran" class="section level3" number="0.1.1">
+<h3>
+<span class="header-section-number">0.1.1</span> Available on CRAN:<a class="anchor" aria-label="anchor" href="#available-on-cran"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li><p><strong>BiocManager</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content="&lt;p&gt;Wolfgang Huber et al., &lt;span&gt;“Orchestrating High-Throughput Genomic Analysis with &lt;span&gt;Bioconductor&lt;/span&gt;,”&lt;/span&gt; &lt;em&gt;Nature Methods&lt;/em&gt; 12, no. 2 (2015): 115–21.&lt;/p&gt;"><sup>2</sup></a></span> offers functionalities to install and manage the packages that are a part of the Bioconductor project. Here, we particularly use it to install the required Bioconductor packages.</p></li>
+<li><p><strong>dplyr</strong>: provides various functionalities for data manipulation.<br>
+We use it here to unify the results tables of the different methods for differential expression analysis. While this is not necessary in general, it simplifies our illustrations as we can use the same GSA pipelines following differential expression analysis, independent of the method for differential expression analysis used.</p></li>
+</ul>
+</div>
+<div id="available-on-bioconductor" class="section level3" number="0.1.2">
+<h3>
+<span class="header-section-number">0.1.2</span> Available on Bioconductor<a class="anchor" aria-label="anchor" href="#available-on-bioconductor"><i class="fas fa-link"></i></a>
+</h3>
+<p>To install the following libraries, the library <strong>BiocManager</strong> must be installed and loaded first.</p>
+<ul>
+<li><p><strong>tweeDEseqCountData</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;Juan R Gonzalez and Mikel Esnaola, &lt;em&gt;tweeDEseqCountData: RNA-Seq Count Data Employed in the Vignette of the tweeDEseq Package&lt;/em&gt;, 2022, &lt;a href="http://www.creal.cat/jrgonzalez/software.htm"&gt;http://www.creal.cat/jrgonzalez/software.htm&lt;/a&gt;.&lt;/p&gt;'><sup>3</sup></a></span> provides count data from three RNA-Seq experiments together with information such as the conditions of the samples. We work work the gene expression data set provided by Pickrell et al. (2010)<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content="&lt;p&gt;Joseph K Pickrell et al., &lt;span&gt;“Understanding Mechanisms Underlying Human Gene Expression Variation with RNA Sequencing,”&lt;/span&gt; &lt;em&gt;Nature&lt;/em&gt; 464, no. 7289 (2010): 768–72.&lt;/p&gt;"><sup>4</sup></a></span> in our illustrations.</p></li>
+<li><p><strong>Biobase</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content="&lt;p&gt;Huber et al., &lt;span&gt;“Orchestrating High-Throughput Genomic Analysis with &lt;span&gt;Bioconductor&lt;/span&gt;.”&lt;/span&gt;&lt;/p&gt;"><sup>5</sup></a></span> contains standardized data structures to represent genomic data. We need this package to access the count data of the pickrell data set from the library ‘tweeDEseqCountData’ using function <em>exprs()</em>.</p></li>
+<li><p><strong>clusterProfiler</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content="&lt;p&gt;Tianzhi Wu et al., &lt;span&gt;“clusterProfiler 4.0: A Universal Enrichment Tool for Interpreting Omics Data,”&lt;/span&gt; &lt;em&gt;The Innovation&lt;/em&gt; 2, no. 3 (2021): 100141.&lt;/p&gt;"><sup>6</sup></a></span> offers functionalities to explore the functional characteristics of high-throughput genomic data. Here, we use its functions to perform ORA and GSEA and for the conversion of the gene IDs.</p></li>
+<li><p><strong>org.Hs.eg.db</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content="&lt;p&gt;Marc Carlson, &lt;em&gt;Org.hs.eg.db: Genome Wide Annotation for Human&lt;/em&gt;, 2022.&lt;/p&gt;"><sup>7</sup></a></span> provides the genome-wide annotation for the human organism. Note that if your gene expression measurements are extracted from a different organism, you must adapt this library accordingly. For instance, the organism mouse requires the library org.Mm.eg.db.<br>
+This library is often required when working with the library clusterProfiler.</p></li>
+<li><p><strong>limma</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;Matthew E Ritchie et al., &lt;span&gt;“&lt;span class="nocase"&gt;limma&lt;/span&gt; Powers Differential Expression Analyses for &lt;span&gt;RNA-&lt;/span&gt;Sequencing and Microarray Studies,”&lt;/span&gt; &lt;em&gt;Nucleic Acids Research&lt;/em&gt; 43, no. 7 (2015): e47–47.&lt;/p&gt;'><sup>8</sup></a></span> provides functionalities for analysing data from gene expression experiments. limma allows the analysis of microarray as well as RNA-Seq data for which the analysis pipelines are similar. We here use limma for differential expression analysis and make use of a transformation of the RNA-Seq data to align its characteristics for microarray data.</p></li>
+<li><p><strong>edgeR</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;Mark D Robinson, Davis J McCarthy, and Gordon K Smyth, &lt;span&gt;“&lt;span class="nocase"&gt;edgeR: a Bioconductor package for differential expression analysis of digital gene expression data&lt;/span&gt;,”&lt;/span&gt; &lt;em&gt;Bioinformatics&lt;/em&gt; 26, no. 1 (2010): 139–40.&lt;/p&gt;'><sup>9</sup></a></span> provides functionalities to analyse data from RNA sequencing technologies and focuses on differential expression analysis with biological (as opposed to technical) replicates.</p></li>
+<li><p><strong>DESeq2</strong><span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;Michael I Love, Wolfgang Huber, and Simon Anders, &lt;span&gt;“&lt;span class="nocase"&gt;Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2&lt;/span&gt;,”&lt;/span&gt; &lt;em&gt;Genome Biology&lt;/em&gt; 15 (2014): 550.&lt;/p&gt;'><sup>10</sup></a></span>: offers functionalities for visualization and differential expression analysis of RNA-Seq data.</p></li>
+<li><p><strong>goseq</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;Matthew D Young et al., &lt;span&gt;“Gene Ontology Analysis for &lt;span class="nocase"&gt;RNA-seq&lt;/span&gt;: Accounting for Selection Bias,”&lt;/span&gt; &lt;em&gt;Genome Biology&lt;/em&gt; 11, no. 2 (2010): 1–12.&lt;/p&gt;'><sup>11</sup></a></span> implements the GSA method GOSeq.</p></li>
+<li><p><strong>PADOG</strong>:<span class="citation"><a class="footnote-ref" tabindex="0" data-toggle="popover" data-content='&lt;p&gt;Adi L Tarca, Gaurav Bhatti, and Roberto Romero, &lt;span&gt;“&lt;span class="nocase"&gt;A Comparison of Gene Set Analysis Methods in Terms of Sensitivity, Prioritization and Specificity&lt;/span&gt;,”&lt;/span&gt; &lt;em&gt;PloS One&lt;/em&gt; 8, no. 11 (2013): e79217.&lt;/p&gt;'><sup>12</sup></a></span> implements the GSA method PADOG.</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+
+
+  <div class="chapter-nav">
+<div class="empty"></div>
+<div class="next"><a href="pre-filtering.html"><span class="header-section-number">1</span> Pre-filtering</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#about">About</a></li>
+<li>
+<a class="nav-link" href="#required-r-packages"><span class="header-section-number">0.1</span> Required R packages</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#available-on-cran"><span class="header-section-number">0.1.1</span> Available on CRAN:</a></li>
+<li><a class="nav-link" href="#available-on-bioconductor"><span class="header-section-number">0.1.2</span> Available on Bioconductor</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Practical Guide through Running Gene Set Analysis in R</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-27.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

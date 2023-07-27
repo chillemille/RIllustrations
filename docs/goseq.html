@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 5 GOSeq | A Practical Guide through Running Gene Set Analysis in R</title>
+<meta name="author" content="Milena Wünsch and Pat Callahan">
+<meta name="description" content="5.1 Content of this script In this script, we will do the following two things: Based on the results of differential expression analysis, generated with voom/limma, DESeq2 and, edgeR, we will go...">
+<meta name="generator" content="bookdown 0.34 with bs4_book()">
+<meta property="og:title" content="Chapter 5 GOSeq | A Practical Guide through Running Gene Set Analysis in R">
+<meta property="og:type" content="book">
+<meta property="og:description" content="5.1 Content of this script In this script, we will do the following two things: Based on the results of differential expression analysis, generated with voom/limma, DESeq2 and, edgeR, we will go...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 5 GOSeq | A Practical Guide through Running Gene Set Analysis in R">
+<meta name="twitter:description" content="5.1 Content of this script In this script, we will do the following two things: Based on the results of differential expression analysis, generated with voom/limma, DESeq2 and, edgeR, we will go...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Practical Guide through Running Gene Set Analysis in R</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">About</a></li>
+<li class="book-part">Common Processing Steps</li>
+<li><a class="" href="pre-filtering.html"><span class="header-section-number">1</span> Pre-filtering</a></li>
+<li><a class="" href="gene-id-conversion-and-removal-of-the-resulting-duplicated-gene-ids.html"><span class="header-section-number">2</span> Gene ID conversion and removal of the resulting duplicated gene IDs</a></li>
+<li><a class="" href="differential-expression-analysis.html"><span class="header-section-number">3</span> Differential expression analysis</a></li>
+<li><a class="" href="transformation-of-the-rna-seq-data.html"><span class="header-section-number">4</span> Transformation of the RNA-Seq data</a></li>
+<li class="book-part">No Gene ID Conversion</li>
+<li><a class="active" href="goseq.html"><span class="header-section-number">5</span> GOSeq</a></li>
+<li><a class="" href="clusterprofilers-gsea-with-gene-set-database-go.html"><span class="header-section-number">6</span> clusterProfiler’s GSEA (with gene set database GO)</a></li>
+<li><a class="" href="david.html"><span class="header-section-number">7</span> DAVID</a></li>
+<li><a class="" href="gsea-web-based-tool.html"><span class="header-section-number">8</span> GSEA (web-based tool)</a></li>
+<li class="book-part">With Gene ID Conversion</li>
+<li><a class="" href="clusterprofilers-gsea-with-gene-set-database-kegg.html"><span class="header-section-number">9</span> clusterProfiler’s GSEA (with gene set database KEGG)</a></li>
+<li><a class="" href="clusterprofilers-ora.html"><span class="header-section-number">10</span> clusterProfiler’s ORA</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">11</span> PADOG</a></li>
+<li><a class="" href="gseapreranked.html"><span class="header-section-number">12</span> GSEAPreranked</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="goseq" class="section level1" number="5">
+<h1>
+<span class="header-section-number">5</span> GOSeq<a class="anchor" aria-label="anchor" href="#goseq"><i class="fas fa-link"></i></a>
+</h1>
+<div id="content-of-this-script" class="section level2" number="5.1">
+<h2>
+<span class="header-section-number">5.1</span> Content of this script<a class="anchor" aria-label="anchor" href="#content-of-this-script"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this script, we will do the following two things:</p>
+<ol style="list-style-type: decimal">
+<li><p>Based on the results of differential expression analysis, generated with voom/limma, DESeq2 and, edgeR, we will go through all steps required to run GOSeq.</p></li>
+<li><p>We will go through all (meaningful) researchers’ degrees of freedom.</p></li>
+</ol>
+</div>
+<div id="libraries-4" class="section level2" number="5.2">
+<h2>
+<span class="header-section-number">5.2</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-4"><i class="fas fa-link"></i></a>
+</h2>
+<p>All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.</p>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"tweeDEseqCountData"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"Biobase"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"goseq"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Load libraries</strong></p>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.creal.cat/jrgonzalez/software.htm">tweeDEseqCountData</a></span><span class="op">)</span>  </span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bioconductor.org/packages/Biobase">Biobase</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">goseq</span><span class="op">)</span></span></code></pre></div>
+<p>Description of the libraries:</p>
+<ul>
+<li><p><strong>tweeDEseqCountData</strong>: In addition to the results of differential expression analysis, we also need the raw count data for the case that we want to adjust the bias to account for (see step 4 of ‘Researcher’s degrees of freedom’ at the end of this script).</p></li>
+<li><p><strong>Biobase</strong>: Required to access the count data of the pickrell data set.</p></li>
+<li><p><strong>goseq</strong>: Offers the implementation of the method GOSeq.</p></li>
+</ul>
+</div>
+<div id="load-data-3" class="section level2" number="5.3">
+<h2>
+<span class="header-section-number">5.3</span> Load data<a class="anchor" aria-label="anchor" href="#load-data-3"><i class="fas fa-link"></i></a>
+</h2>
+<p>The starting point of GOSeq are the results of differential expression analysis. Since GOSeq works with Ensembl gene IDs, we load the corresponding results of differential expression analysis with Ensembl gene IDs.</p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_Differential_Expression_Analysis/DE_results_limma_Ensembl.Rdata"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_Differential_Expression_Analysis/DE_results_DESeq2_Ensembl.Rdata"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_Differential_Expression_Analysis/DE_results_edgeR_Ensembl.Rdata"</span><span class="op">)</span></span></code></pre></div>
+<p>Since the relevant columns from the results table are unified for all three methods of differential expression analysis, the subsequent steps are identical for each results table. Therefore, we arbitrarily proceed with only one results table of differential expression analysis, namely DESeq2.</p>
+<p>For a simplified readability, we store the corresponding results in an object with a more neutral name:</p>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">DE_results</span> <span class="op">&lt;-</span> <span class="va">DE_results_DESeq2_Ensembl</span></span></code></pre></div>
+<p>Note that you could easily change to one of the results tables of voom/limma or edgeR:</p>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># DE_results &lt;- DE_results_limma_Ensembl</span></span>
+<span><span class="co"># or </span></span>
+<span><span class="co"># DE_results &lt;- DE_results_DESeq2_Ensembl</span></span></code></pre></div>
+<p>As mentioned above, we need the expression measurements of the pickrell data set for one of the researchers’ degrees of freedom.</p>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load pickrell data set</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">pickrell</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># set gene expression data set </span></span>
+<span><span class="va">expression_data</span> <span class="op">&lt;-</span> <span class="fu">Biobase</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Biobase/man/exprs.html">exprs</a></span><span class="op">(</span><span class="va">pickrell.eset</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="gene-set-analysis" class="section level2" number="5.4">
+<h2>
+<span class="header-section-number">5.4</span> Gene Set Analysis<a class="anchor" aria-label="anchor" href="#gene-set-analysis"><i class="fas fa-link"></i></a>
+</h2>
+<div id="step-1-preparation-of-required-input-object" class="section level3" number="5.4.1">
+<h3>
+<span class="header-section-number">5.4.1</span> Step 1: Preparation of required input object<a class="anchor" aria-label="anchor" href="#step-1-preparation-of-required-input-object"><i class="fas fa-link"></i></a>
+</h3>
+<p>GOSeq’s required input object differs from the objects typically required by ORA tools. Instead of a list of differentially expressed genes, GOSeq accepts as input a “named binary vector” with</p>
+<ol style="list-style-type: decimal">
+<li><p>values 0 (for not differentially expressed genes) and 1 (for differentially expressed genes).</p></li>
+<li><p>names that correspond to the associated gene IDs.</p></li>
+</ol>
+<p>Note that some methods for differential expression analysis, such as DESeq2, set the adjusted p-values of some genes to NA. This means that these genes are not assessed with respects to differential expression. Consequently, these genes cannot be assigned neither value 1 nor 0 in the input object. We therefore remove genes with an adjusted p-value set to NA from the creation of the named binary vector.</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. for each gene from the experiment, indicate those that have an EXISTING (i.e.</span></span>
+<span><span class="co"># NON-MISSING) p-value</span></span>
+<span><span class="va">indicator_nonNA_p</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">p_adj</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. using the indicator from 1., subset the results of differential expression</span></span>
+<span><span class="co"># analysis to only those genes with an EXISTING (i.e. NON-MISSING) p-value</span></span>
+<span><span class="va">DE_results_noNA</span> <span class="op">&lt;-</span> <span class="va">DE_results</span><span class="op">[</span><span class="va">indicator_nonNA_p</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># 3. create vector with binary value (0 or 1) for each gene in DE_results_noNA</span></span>
+<span><span class="co"># for this, we focus on the column p_adj which contains the adjusted p-values</span></span>
+<span><span class="va">bin_vec_DEG</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">p_adj</span> <span class="op">&lt;</span> <span class="fl">0.05</span> , <span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># note: function ifelse() goes through each adjusted p-value in the results</span></span>
+<span><span class="co"># of differential expression analysis and in a new vector, assigns value 1</span></span>
+<span><span class="co"># if the adjusted p-value is &lt; 0.05 and else value 0</span></span>
+<span></span>
+<span><span class="co"># 4. assign each value of the vector the corresponding gene ID</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">bin_vec_DEG</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">rownames</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 5. results: named binary vector bin_vec_DEG</span></span>
+<span><span class="co"># note that we here inspect only the first few entries </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">bin_vec_DEG</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ENSG00000000419 ENSG00000000457 ENSG00000000460 </span></span>
+<span><span class="co">#&gt;               0               0               0 </span></span>
+<span><span class="co">#&gt; ENSG00000000938 ENSG00000001036 ENSG00000001167 </span></span>
+<span><span class="co">#&gt;               0               0               0 </span></span>
+<span><span class="co">#&gt; ENSG00000001497 ENSG00000001561 ENSG00000002016 </span></span>
+<span><span class="co">#&gt;               0               0               0 </span></span>
+<span><span class="co">#&gt; ENSG00000002330 ENSG00000002587 ENSG00000002745 </span></span>
+<span><span class="co">#&gt;               0               0               0 </span></span>
+<span><span class="co">#&gt; ENSG00000002834 ENSG00000002919 ENSG00000003056 </span></span>
+<span><span class="co">#&gt;               0               0               0 </span></span>
+<span><span class="co">#&gt; ENSG00000003096 ENSG00000003249 ENSG00000003989 </span></span>
+<span><span class="co">#&gt;               0               0               0 </span></span>
+<span><span class="co">#&gt; ENSG00000004468 ENSG00000004478 </span></span>
+<span><span class="co">#&gt;               0               0</span></span></code></pre></div>
+<p>Note that “bin_vec_DEG” stands for <strong>bin</strong>ary <strong>vec</strong>tor of <strong>d</strong>ifferentially <strong>e</strong>xpressed <strong>g</strong>enes.</p>
+<p>For illustration purposes: compare the number of differentially expressed genes from the results table of differential expression analysis to the number of differentially expressed genes from the named binary vector.</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># (i) initial results table of differential expression analysis</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/table.html">table</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">p_adj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; FALSE  TRUE </span></span>
+<span><span class="co">#&gt; 10128    22</span></span>
+<span></span>
+<span><span class="co"># (ii) results table of differential expression analysis subsetted to those genes</span></span>
+<span><span class="co"># with a non-missing adjusted p-value</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/table.html">table</a></span><span class="op">(</span><span class="va">DE_results_noNA</span><span class="op">$</span><span class="va">p_adj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; FALSE  TRUE </span></span>
+<span><span class="co">#&gt; 10128    22</span></span>
+<span></span>
+<span><span class="co"># (iii) named binary vector  </span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/table.html">table</a></span><span class="op">(</span><span class="va">bin_vec_DEG</span><span class="op">)</span></span>
+<span><span class="co">#&gt; bin_vec_DEG</span></span>
+<span><span class="co">#&gt;     0     1 </span></span>
+<span><span class="co">#&gt; 10128    22</span></span></code></pre></div>
+</div>
+<div id="step-2-calculate-probability-weight-for-each-gene" class="section level3" number="5.4.2">
+<h3>
+<span class="header-section-number">5.4.2</span> Step 2: Calculate probability weight for each gene<a class="anchor" aria-label="anchor" href="#step-2-calculate-probability-weight-for-each-gene"><i class="fas fa-link"></i></a>
+</h3>
+<p>GOSeq works with the function <em>nullp()</em> to calculate the probability weight of each gene:</p>
+<p>For an overview of available gene identifiers and supported organisms see:</p>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/geneLenDataBase/man/supportedGeneIDs.html">supportedGeneIDs</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Function arguments:</p>
+<ul>
+<li><p><strong>DEgenes</strong>: named binary vector generated in step 1</p></li>
+<li>
+<p><strong>genome</strong>: indicates organism from which gene expression is measured</p>
+<ul>
+<li><p>specify ‘organism = “hg19”’ for human</p></li>
+<li><p>for other organisms, the argument must be adapted accordingly (such as “mm9” for mouse)</p></li>
+</ul>
+</li>
+<li>
+<p><strong>id</strong>: indicates gene identifier</p>
+<ul>
+<li><p>specify ‘id = “knownGene”’ for Entrez gene ID</p></li>
+<li><p>specify ‘id = “ensGene”’ for Ensembl gene ID (which is the case here)</p></li>
+<li><p>specify ‘id = “geneSymbol”’ for HGNC gene symbols</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Note 1</strong>: Argument bias.data specifies the data on which the detection of differential expression
+might be dependent on. While the default argument ‘bias.data = NULL’ specifies that the length of each gene is retrieved from the UCSC genome browser, the user can alternatively provide a vector which contains an entry for each gene contained by bin_vec_DEG. An alternative suggested by the authors of GOSeq would be to account for the read count bias of each gene, i.e. for the total number of read counts across all samples that are assigned to each individual gene.</p>
+<p><strong>Note 2</strong>: By default, the probability weight function is plotted when <em>nullp()</em> is run. This can be deactivated by adding the function argument ‘plot.fit = FALSE’.</p>
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ProbabilityWeightings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/nullp.html">nullp</a></span><span class="op">(</span>DEgenes <span class="op">=</span> <span class="va">bin_vec_DEG</span>,</span>
+<span>             genome<span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>             id<span class="op">=</span> <span class="st">"ensGene"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="05-goseq_files/figure-html/unnamed-chunk-10-1.png" width="672"></div>
+<p>Inspect the resulting data frame:</p>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">ProbabilityWeightings</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                 DEgenes bias.data        pwf</span></span>
+<span><span class="co">#&gt; ENSG00000000419       0    1079.5 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000000457       0    3128.5 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000000460       0    3126.0 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000000938       0    2437.0 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000001036       0    1365.0 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000001167       0    6140.0 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000001497       0    2398.5 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000001561       0    4590.5 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000002016       0    2712.5 0.00219934</span></span>
+<span><span class="co">#&gt; ENSG00000002330       0    1074.0 0.00219934</span></span></code></pre></div>
+<p>The results table of <em>nullp()</em> provides one row of data for each gene with the following information:</p>
+<ul>
+<li><p><strong>DEgenes</strong>: indicates status of differential expression (0/1). This information can be directly extracted from the input object</p></li>
+<li><p><strong>bias.data</strong>: numeric value of bias for each gene concerning the detection of differential expression. This usually corresponds to the length of the gene</p></li>
+<li><p><strong>pwf</strong>: value of the probability weighting function of the gene</p></li>
+</ul>
+<p>Note that the values of bias.data in the resulting data frame depend on the function argument bias.data in function <em>nullp()</em> (further information below).</p>
+</div>
+<div id="step-3-test-for-differential-enrichment" class="section level3" number="5.4.3">
+<h3>
+<span class="header-section-number">5.4.3</span> Step 3: Test for differential enrichment<a class="anchor" aria-label="anchor" href="#step-3-test-for-differential-enrichment"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/goseq.html">goseq</a></span><span class="op">(</span>pwf <span class="op">=</span> <span class="va">ProbabilityWeightings</span>,</span>
+<span>                       genome <span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>                       id <span class="op">=</span> <span class="st">"ensGene"</span>,</span>
+<span>                       test.cats <span class="op">=</span> <span class="st">"GO:BP"</span><span class="op">)</span></span></code></pre></div>
+<p>Function arguments:</p>
+<ul>
+<li>
+<p><strong>pwf</strong>: typically the output of the <em>nullp()</em> function (step 2), i.e. probability weighting function
+<strong>genome</strong>: indicates organism from which gene expression is measured (see also step 2)</p>
+<ul>
+<li><p>specify organism = “hg19” for human</p></li>
+<li><p>for other organisms, the argument must be adapted accordingly (such as “mm9” for mouse)</p></li>
+</ul>
+</li>
+<li>
+<p><strong>id</strong>: indicates gene identifier (see also step 2)</p>
+<ul>
+<li><p>specify ‘id = “knownGene”’ for Entrez gene ID</p></li>
+<li><p>specify ‘id = “ensGene”’ for Ensembl gene ID</p></li>
+<li><p>specify ‘id = “geneSymbol”’ for HGNC gene symbols</p></li>
+</ul>
+</li>
+<li>
+<p><strong>test.cats</strong>: gene set database</p>
+<ul>
+<li><p>“<a href="GO:BP" class="uri">GO:BP</a>”, “<a href="GO:MF" class="uri">GO:MF</a>”, “<a href="GO:CC" class="uri">GO:CC</a>” : geneset database GO with respective subontology</p></li>
+<li><p>“KEGG”: geneset database KEGG</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="step-4-adjust-for-multiple-testing" class="section level3" number="5.4.4">
+<h3>
+<span class="header-section-number">5.4.4</span> Step 4: Adjust for multiple testing<a class="anchor" aria-label="anchor" href="#step-4-adjust-for-multiple-testing"><i class="fas fa-link"></i></a>
+</h3>
+<p>Note that GOSeq does not perform adjustment for multiple testing internally so that it MUST be performed by the user manually. We therefore add a new column that contains the corresponding adjusted p-values. Relevant for the over-representation test are the (unadjusted) p-values from column “over_represented_pvalue” which we adjust for multiple testing in the following:</p>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results</span><span class="op">$</span><span class="va">p_adj_overrepresented</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">GOSeq_results</span><span class="op">$</span><span class="va">over_represented_pvalue</span><span class="op">)</span></span></code></pre></div>
+<p>Note that by default, <em>p.adjust()</em> (from library <em>base</em>) performs multiple test adjustment based on the method by Benjamini and Hochberg.</p>
+</div>
+<div id="step-5-interpretation-of-the-results-table" class="section level3" number="5.4.5">
+<h3>
+<span class="header-section-number">5.4.5</span> Step 5: Interpretation of the results table<a class="anchor" aria-label="anchor" href="#step-5-interpretation-of-the-results-table"><i class="fas fa-link"></i></a>
+</h3>
+<p>Inspect final results table:</p>
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">GOSeq_results</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        category over_represented_pvalue</span></span>
+<span><span class="co">#&gt; 9794 GO:0072132             0.001436536</span></span>
+<span><span class="co">#&gt; 8615 GO:0060806             0.001966139</span></span>
+<span><span class="co">#&gt; 3792 GO:0030036             0.003004745</span></span>
+<span><span class="co">#&gt; 5449 GO:0035965             0.003928626</span></span>
+<span><span class="co">#&gt; 6217 GO:0043503             0.003928626</span></span>
+<span><span class="co">#&gt; 9544 GO:0071557             0.003928626</span></span>
+<span><span class="co">#&gt; 3786 GO:0030029             0.004596282</span></span>
+<span><span class="co">#&gt; 2746 GO:0010957             0.005887469</span></span>
+<span><span class="co">#&gt; 8611 GO:0060800             0.005887469</span></span>
+<span><span class="co">#&gt; 9365 GO:0071205             0.005887469</span></span>
+<span><span class="co">#&gt;      under_represented_pvalue numDEInCat numInCat</span></span>
+<span><span class="co">#&gt; 9794                0.9999774          2       29</span></span>
+<span><span class="co">#&gt; 8615                1.0000000          1        1</span></span>
+<span><span class="co">#&gt; 3792                0.9997067          4      319</span></span>
+<span><span class="co">#&gt; 5449                0.9999963          1        2</span></span>
+<span><span class="co">#&gt; 6217                0.9999963          1        2</span></span>
+<span><span class="co">#&gt; 9544                0.9999963          1        2</span></span>
+<span><span class="co">#&gt; 3786                0.9994938          4      359</span></span>
+<span><span class="co">#&gt; 2746                0.9999891          1        3</span></span>
+<span><span class="co">#&gt; 8611                0.9999891          1        3</span></span>
+<span><span class="co">#&gt; 9365                0.9999891          1        3</span></span>
+<span><span class="co">#&gt;                                                                                        term</span></span>
+<span><span class="co">#&gt; 9794                                                               mesenchyme morphogenesis</span></span>
+<span><span class="co">#&gt; 8615 negative regulation of cell differentiation involved in embryonic placenta development</span></span>
+<span><span class="co">#&gt; 3792                                                        actin cytoskeleton organization</span></span>
+<span><span class="co">#&gt; 5449                                                      cardiolipin acyl-chain remodeling</span></span>
+<span><span class="co">#&gt; 6217                                                       skeletal muscle fiber adaptation</span></span>
+<span><span class="co">#&gt; 9544                                                           histone H3-K27 demethylation</span></span>
+<span><span class="co">#&gt; 3786                                                           actin filament-based process</span></span>
+<span><span class="co">#&gt; 2746                                  negative regulation of vitamin D biosynthetic process</span></span>
+<span><span class="co">#&gt; 8611          regulation of cell differentiation involved in embryonic placenta development</span></span>
+<span><span class="co">#&gt; 9365                                   protein localization to juxtaparanode region of axon</span></span>
+<span><span class="co">#&gt;      ontology p_adj_overrepresented</span></span>
+<span><span class="co">#&gt; 9794       BP                     1</span></span>
+<span><span class="co">#&gt; 8615       BP                     1</span></span>
+<span><span class="co">#&gt; 3792       BP                     1</span></span>
+<span><span class="co">#&gt; 5449       BP                     1</span></span>
+<span><span class="co">#&gt; 6217       BP                     1</span></span>
+<span><span class="co">#&gt; 9544       BP                     1</span></span>
+<span><span class="co">#&gt; 3786       BP                     1</span></span>
+<span><span class="co">#&gt; 2746       BP                     1</span></span>
+<span><span class="co">#&gt; 8611       BP                     1</span></span>
+<span><span class="co">#&gt; 9365       BP                     1</span></span></code></pre></div>
+<p>Columns in results table:</p>
+<ul>
+<li><p><strong>Category</strong>: provides the ID of the gene set (based on the choice of the gene set
+database in step 4)</p></li>
+<li>
+<p><strong>over_represented_pvalue</strong>: p-value of over-representation</p>
+<ul>
+<li>
+<strong>IMPORTANT NOTE</strong>: DO NOT use these p-values to assess differential enrichment
+of a given gene set, since these p-value have not been adjusted for multiple
+testing</li>
+</ul>
+</li>
+<li>
+<p><strong>under_represented_p-value</strong>: p-value of under-representation</p>
+<ul>
+<li><p>not relevant if you want to test for <strong>over</strong>-representation</p></li>
+<li><p>important note: if you are interested in testing for <strong>under</strong>-representation,
+you must adjust the p-values for multiple testing:</p></li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#GOSeq_results$p_adj_underrepresented &lt;- p.adjust(GOSeq_results$under_represented_pvalue)</span></span></code></pre></div>
+<ul>
+<li><p><strong>numDEInCat</strong>: gives the number of differentially expressed genes from the input that are members of the given gene set</p></li>
+<li><p><strong>numInCat</strong>: number of genes that are members of the given gene set</p></li>
+<li>
+<p><strong>term</strong>: description of the gene set</p>
+<ul>
+<li>NOTE: this column is only provided for the geneset database GO</li>
+</ul>
+</li>
+<li>
+<p><strong>ontology</strong>: subontology of geneset database GO (based on choice in step 3)</p>
+<ul>
+<li>this column is only provided for the geneset database GO</li>
+</ul>
+</li>
+<li>
+<p><strong>p_adj_overrepresented</strong>: p-value of over-representation that has been ADJUSTED
+for multiple testing</p>
+<ul>
+<li>based on these adjusted p-values, differential enrichment (i.e. significant
+over-representation) can be assessed</li>
+</ul>
+</li>
+<li><p><strong>typically</strong>: detect those gene sets as differentially enriched with a value of
+p_adj_overrepresented &lt; 0.05</p></li>
+</ul>
+</div>
+</div>
+<div id="researchers-degrees-of-freedom" class="section level2" number="5.5">
+<h2>
+<span class="header-section-number">5.5</span> Researchers’ degrees of freedom<a class="anchor" aria-label="anchor" href="#researchers-degrees-of-freedom"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this part, we will go through all parameters that can be adapted in the GOSeq workflow. It is important to note that the intention behind going through the researchers’ degrees of freedom is to give you an understanding of what you can do to adapt the given (parameter) setting to the research question. It is even more important to keep in mind that the intention behind going through these flexible parameters is NOT to change them in order to help you obtain the most preferable results by systematically changing these parameters since such behaviour would correspond to “cherry-picking”. Any changes in the parameter choice must be documented transparently.</p>
+<div id="change-1-change-gene-set-database" class="section level3" number="5.5.1">
+<h3>
+<span class="header-section-number">5.5.1</span> Change 1: Change gene set database<a class="anchor" aria-label="anchor" href="#change-1-change-gene-set-database"><i class="fas fa-link"></i></a>
+</h3>
+<p>The gene set database can be adjusted in the function <em>goseq()</em> in argument <strong>test.cats</strong>, while the arguments and therefore also the results of function <em>nullp()</em> remain untouched.</p>
+<p>Here, we want to change the gene set database to KEGG</p>
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results_database</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/goseq.html">goseq</a></span><span class="op">(</span>pwf <span class="op">=</span> <span class="va">ProbabilityWeightings</span>,</span>
+<span>                                genome <span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>                                id <span class="op">=</span> <span class="st">"ensGene"</span>,</span>
+<span>                                test.cats <span class="op">=</span> <span class="st">"KEGG"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># adjust the p-values of over-representation for multiple testing </span></span>
+<span><span class="va">GOSeq_results_database</span><span class="op">$</span><span class="va">p_adj_overrepresented</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">GOSeq_results_database</span><span class="op">$</span><span class="va">over_represented_pvalue</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Inspect the results</strong></p>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">GOSeq_results_database</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     category over_represented_pvalue</span></span>
+<span><span class="co">#&gt; 15     00140              0.05639237</span></span>
+<span><span class="co">#&gt; 74     00830              0.07679025</span></span>
+<span><span class="co">#&gt; 112    04115              0.10664353</span></span>
+<span><span class="co">#&gt; 137    04520              0.12606006</span></span>
+<span><span class="co">#&gt; 131    04360              0.17902850</span></span>
+<span><span class="co">#&gt; 110    04110              0.19106380</span></span>
+<span><span class="co">#&gt; 138    04530              0.19404770</span></span>
+<span><span class="co">#&gt; 87     03010              0.20294007</span></span>
+<span><span class="co">#&gt; 118    04142              0.22908991</span></span>
+<span><span class="co">#&gt; 88     03013              0.24046217</span></span>
+<span><span class="co">#&gt;     under_represented_pvalue numDEInCat numInCat</span></span>
+<span><span class="co">#&gt; 15                 0.9986285          1       16</span></span>
+<span><span class="co">#&gt; 74                 0.9973902          1       22</span></span>
+<span><span class="co">#&gt; 112                0.9948370          1       31</span></span>
+<span><span class="co">#&gt; 137                0.9926905          1       37</span></span>
+<span><span class="co">#&gt; 131                0.9848017          1       54</span></span>
+<span><span class="co">#&gt; 110                0.9825791          1       58</span></span>
+<span><span class="co">#&gt; 138                0.9820026          1       59</span></span>
+<span><span class="co">#&gt; 87                 0.9802242          1       62</span></span>
+<span><span class="co">#&gt; 118                0.9744602          1       71</span></span>
+<span><span class="co">#&gt; 88                 0.9716992          1       75</span></span>
+<span><span class="co">#&gt;     p_adj_overrepresented</span></span>
+<span><span class="co">#&gt; 15                      1</span></span>
+<span><span class="co">#&gt; 74                      1</span></span>
+<span><span class="co">#&gt; 112                     1</span></span>
+<span><span class="co">#&gt; 137                     1</span></span>
+<span><span class="co">#&gt; 131                     1</span></span>
+<span><span class="co">#&gt; 110                     1</span></span>
+<span><span class="co">#&gt; 138                     1</span></span>
+<span><span class="co">#&gt; 87                      1</span></span>
+<span><span class="co">#&gt; 118                     1</span></span>
+<span><span class="co">#&gt; 88                      1</span></span></code></pre></div>
+<p>Note that when the gene set database KEGG is specified, then no column “term” is provided in the results table to give a description of the corresponding gene set.<br>
+Other gene set databases can be specified by setting the argument to</p>
+<ul>
+<li>
+<strong>test.cats = “<a href="GO:CC" class="uri">GO:CC</a>”</strong>: GO with subontology Cellular Component</li>
+<li>
+<strong>test.cats = “<a href="GO:MF" class="uri">GO:MF</a>”</strong>: GO with subontology Molecular Function</li>
+</ul>
+</div>
+<div id="change-2-include-genes-that-are-no-member-of-any-gene-set-in-calculation-of-the-p-value" class="section level3" number="5.5.2">
+<h3>
+<span class="header-section-number">5.5.2</span> Change 2: Include genes that are no member of any gene set in calculation of the p-value<a class="anchor" aria-label="anchor" href="#change-2-include-genes-that-are-no-member-of-any-gene-set-in-calculation-of-the-p-value"><i class="fas fa-link"></i></a>
+</h3>
+<p>By default, only those gene sets are included in the calculation of the p-value that are a member to at least one gene set. However, the user has the choice to include all genes from the input object, thus particularly those that are no member of any gene set.</p>
+<p>The additional inclusion of those genes that are no members of any gene set can by specified in argument <strong>use_genes_without_cat</strong> in <em>function goseq()</em>.</p>
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results_allgenes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/goseq.html">goseq</a></span><span class="op">(</span>pwf <span class="op">=</span> <span class="va">ProbabilityWeightings</span>,</span>
+<span>                                    genome <span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>                                    id <span class="op">=</span> <span class="st">"ensGene"</span>,</span>
+<span>                                    test.cats <span class="op">=</span> <span class="st">"GO:BP"</span>,</span>
+<span>                                    use_genes_without_cat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># adjust the p-values of over-representation for multiple testing </span></span>
+<span><span class="va">GOSeq_results_allgenes</span><span class="op">$</span><span class="va">p_adj_overrepresented</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">GOSeq_results_allgenes</span><span class="op">$</span><span class="va">over_represented_pvalue</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Inspect the results</strong></p>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">GOSeq_results_allgenes</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        category over_represented_pvalue</span></span>
+<span><span class="co">#&gt; 9794 GO:0072132             0.001757439</span></span>
+<span><span class="co">#&gt; 8615 GO:0060806             0.002167488</span></span>
+<span><span class="co">#&gt; 5449 GO:0035965             0.004330490</span></span>
+<span><span class="co">#&gt; 6217 GO:0043503             0.004330490</span></span>
+<span><span class="co">#&gt; 9544 GO:0071557             0.004330490</span></span>
+<span><span class="co">#&gt; 3792 GO:0030036             0.004473754</span></span>
+<span><span class="co">#&gt; 2746 GO:0010957             0.006489017</span></span>
+<span><span class="co">#&gt; 8611 GO:0060800             0.006489017</span></span>
+<span><span class="co">#&gt; 9365 GO:0071205             0.006489017</span></span>
+<span><span class="co">#&gt; 3786 GO:0030029             0.006791812</span></span>
+<span><span class="co">#&gt;      under_represented_pvalue numDEInCat numInCat</span></span>
+<span><span class="co">#&gt; 9794                0.9999689          2       29</span></span>
+<span><span class="co">#&gt; 8615                1.0000000          1        1</span></span>
+<span><span class="co">#&gt; 5449                0.9999955          1        2</span></span>
+<span><span class="co">#&gt; 6217                0.9999955          1        2</span></span>
+<span><span class="co">#&gt; 9544                0.9999955          1        2</span></span>
+<span><span class="co">#&gt; 3792                0.9994964          4      319</span></span>
+<span><span class="co">#&gt; 2746                0.9999866          1        3</span></span>
+<span><span class="co">#&gt; 8611                0.9999866          1        3</span></span>
+<span><span class="co">#&gt; 9365                0.9999866          1        3</span></span>
+<span><span class="co">#&gt; 3786                0.9991380          4      359</span></span>
+<span><span class="co">#&gt;                                                                                        term</span></span>
+<span><span class="co">#&gt; 9794                                                               mesenchyme morphogenesis</span></span>
+<span><span class="co">#&gt; 8615 negative regulation of cell differentiation involved in embryonic placenta development</span></span>
+<span><span class="co">#&gt; 5449                                                      cardiolipin acyl-chain remodeling</span></span>
+<span><span class="co">#&gt; 6217                                                       skeletal muscle fiber adaptation</span></span>
+<span><span class="co">#&gt; 9544                                                           histone H3-K27 demethylation</span></span>
+<span><span class="co">#&gt; 3792                                                        actin cytoskeleton organization</span></span>
+<span><span class="co">#&gt; 2746                                  negative regulation of vitamin D biosynthetic process</span></span>
+<span><span class="co">#&gt; 8611          regulation of cell differentiation involved in embryonic placenta development</span></span>
+<span><span class="co">#&gt; 9365                                   protein localization to juxtaparanode region of axon</span></span>
+<span><span class="co">#&gt; 3786                                                           actin filament-based process</span></span>
+<span><span class="co">#&gt;      ontology p_adj_overrepresented</span></span>
+<span><span class="co">#&gt; 9794       BP                     1</span></span>
+<span><span class="co">#&gt; 8615       BP                     1</span></span>
+<span><span class="co">#&gt; 5449       BP                     1</span></span>
+<span><span class="co">#&gt; 6217       BP                     1</span></span>
+<span><span class="co">#&gt; 9544       BP                     1</span></span>
+<span><span class="co">#&gt; 3792       BP                     1</span></span>
+<span><span class="co">#&gt; 2746       BP                     1</span></span>
+<span><span class="co">#&gt; 8611       BP                     1</span></span>
+<span><span class="co">#&gt; 9365       BP                     1</span></span>
+<span><span class="co">#&gt; 3786       BP                     1</span></span></code></pre></div>
+<p>Note that the argument ‘use_genes_without_cat = TRUE’ used to be the default in earlier versions of the library goseq.</p>
+</div>
+<div id="change-3-change-the-method-for-the-calculation-of-the-p-value" class="section level3" number="5.5.3">
+<h3>
+<span class="header-section-number">5.5.3</span> Change 3: Change the method for the calculation of the p-value<a class="anchor" aria-label="anchor" href="#change-3-change-the-method-for-the-calculation-of-the-p-value"><i class="fas fa-link"></i></a>
+</h3>
+<p>The method for the calculation of the p-value can be adapted in function <em>goseq()</em> in the argument <strong>method</strong>.</p>
+<p>Here, we want to change the method for the calculation of the p-value from Wallenius approximation to the computationally expensive resampling.</p>
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results_method</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/goseq.html">goseq</a></span><span class="op">(</span>pwf <span class="op">=</span> <span class="va">ProbabilityWeightings</span>,</span>
+<span>                              genome <span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>                              id <span class="op">=</span> <span class="st">"ensGene"</span>,</span>
+<span>                              test.cats <span class="op">=</span> <span class="st">"GO:BP"</span>,</span>
+<span>                              method <span class="op">=</span> <span class="st">"Sampling"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># adjust the p-values of over-representation for multiple testing </span></span>
+<span><span class="va">GOSeq_results_method</span><span class="op">$</span><span class="va">p_adj_overrepresented</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">GOSeq_results_method</span><span class="op">$</span><span class="va">over_represented_pvalue</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Inspect the results</strong></p>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">GOSeq_results_method</span>, n <span class="op">=</span> <span class="fl">10</span> <span class="op">)</span></span>
+<span><span class="co">#&gt;        category over_represented_pvalue</span></span>
+<span><span class="co">#&gt; 9794 GO:0072132             0.001499250</span></span>
+<span><span class="co">#&gt; 3792 GO:0030036             0.001999000</span></span>
+<span><span class="co">#&gt; 8615 GO:0060806             0.001999000</span></span>
+<span><span class="co">#&gt; 3786 GO:0030029             0.002498751</span></span>
+<span><span class="co">#&gt; 5449 GO:0035965             0.003998001</span></span>
+<span><span class="co">#&gt; 6217 GO:0043503             0.004497751</span></span>
+<span><span class="co">#&gt; 3962 GO:0030833             0.005497251</span></span>
+<span><span class="co">#&gt; 9365 GO:0071205             0.005497251</span></span>
+<span><span class="co">#&gt; 1733 GO:0007015             0.005997001</span></span>
+<span><span class="co">#&gt; 2001 GO:0008064             0.005997001</span></span>
+<span><span class="co">#&gt;      under_represented_pvalue numDEInCat numInCat</span></span>
+<span><span class="co">#&gt; 9794                        1          2       29</span></span>
+<span><span class="co">#&gt; 3792                        1          4      319</span></span>
+<span><span class="co">#&gt; 8615                        1          1        1</span></span>
+<span><span class="co">#&gt; 3786                        1          4      359</span></span>
+<span><span class="co">#&gt; 5449                        1          1        2</span></span>
+<span><span class="co">#&gt; 6217                        1          1        2</span></span>
+<span><span class="co">#&gt; 3962                        1          2       62</span></span>
+<span><span class="co">#&gt; 9365                        1          1        3</span></span>
+<span><span class="co">#&gt; 1733                        1          3      210</span></span>
+<span><span class="co">#&gt; 2001                        1          2       71</span></span>
+<span><span class="co">#&gt;                                                                                        term</span></span>
+<span><span class="co">#&gt; 9794                                                               mesenchyme morphogenesis</span></span>
+<span><span class="co">#&gt; 3792                                                        actin cytoskeleton organization</span></span>
+<span><span class="co">#&gt; 8615 negative regulation of cell differentiation involved in embryonic placenta development</span></span>
+<span><span class="co">#&gt; 3786                                                           actin filament-based process</span></span>
+<span><span class="co">#&gt; 5449                                                      cardiolipin acyl-chain remodeling</span></span>
+<span><span class="co">#&gt; 6217                                                       skeletal muscle fiber adaptation</span></span>
+<span><span class="co">#&gt; 3962                                            regulation of actin filament polymerization</span></span>
+<span><span class="co">#&gt; 9365                                   protein localization to juxtaparanode region of axon</span></span>
+<span><span class="co">#&gt; 1733                                                            actin filament organization</span></span>
+<span><span class="co">#&gt; 2001                                 regulation of actin polymerization or depolymerization</span></span>
+<span><span class="co">#&gt;      ontology p_adj_overrepresented</span></span>
+<span><span class="co">#&gt; 9794       BP                     1</span></span>
+<span><span class="co">#&gt; 3792       BP                     1</span></span>
+<span><span class="co">#&gt; 8615       BP                     1</span></span>
+<span><span class="co">#&gt; 3786       BP                     1</span></span>
+<span><span class="co">#&gt; 5449       BP                     1</span></span>
+<span><span class="co">#&gt; 6217       BP                     1</span></span>
+<span><span class="co">#&gt; 3962       BP                     1</span></span>
+<span><span class="co">#&gt; 9365       BP                     1</span></span>
+<span><span class="co">#&gt; 1733       BP                     1</span></span>
+<span><span class="co">#&gt; 2001       BP                     1</span></span></code></pre></div>
+<p>Note that by default, 2000 samples are calculated in the course of resampling (see argument repcnt). This argument should NEVER be played around with to generate preferable results. Instead, it is advisable to keep this parameter in its default configuration.<br>
+Also note that, theoretically, GOSeq additionally offers the use of the standard hypergeometric distribution as the method to calculate a p-value of over-representation. However, users are explicitly advised against using this option since the standard hypergeometric distribution does not adjust for ANY biases that might be present in the data.</p>
+</div>
+<div id="change-4-change-the-bias-to-account-for-in-the-analysis" class="section level3" number="5.5.4">
+<h3>
+<span class="header-section-number">5.5.4</span> Change 4: Change the bias to account for in the analysis<a class="anchor" aria-label="anchor" href="#change-4-change-the-bias-to-account-for-in-the-analysis"><i class="fas fa-link"></i></a>
+</h3>
+<p>As an example taken from the user manual of GOSeq, we now want to adjust for the total number of counts of each gene. The idea behind this is that in the context of RNA-Seq data, the magnitude of counts of a given gene set reflects its overall expression level. In RNA-Seq data, which takes the form of count data, a higher magnitude of counts also leads to an increased statistical power (to detect a gene as differentially expressed), which shall be accounted for now. It is important to note that accounting for the total number of counts might also remove the bias that results from actual differential expression between both conditions.</p>
+<p><strong>Step 1: create a vector that contains the total number of read counts for each gene</strong></p>
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Compute the sum of read counts of each gene across all samples from the gene expression data set</span></span>
+<span><span class="va">countbias</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">expression_data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. Subset the vector countbias to all genes that are part of the input object bin_vec_DEG</span></span>
+<span></span>
+<span><span class="co"># (i) indicate which genes are a part of the input object:</span></span>
+<span><span class="va">ind_input</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">countbias</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">bin_vec_DEG</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># (ii) subset vector countbias</span></span>
+<span><span class="va">countbias</span> <span class="op">&lt;-</span> <span class="va">countbias</span><span class="op">[</span><span class="va">ind_input</span><span class="op">]</span></span></code></pre></div>
+<p><strong>Step 2: Provide countbias to function nullp()</strong></p>
+<p>The custom bias can be provided to function <em>nullp()</em> in argument <strong>bias.data</strong>:</p>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ProbabilityWeightings_countbias</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/nullp.html">nullp</a></span><span class="op">(</span>DEgenes <span class="op">=</span> <span class="va">bin_vec_DEG</span>,</span>
+<span>                                        genome<span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>                                        id<span class="op">=</span> <span class="st">"ensGene"</span>,</span>
+<span>                                        bias.data <span class="op">=</span> <span class="va">countbias</span><span class="op">)</span> </span></code></pre></div>
+<div class="inline-figure"><img src="05-goseq_files/figure-html/unnamed-chunk-23-1.png" width="672"></div>
+<p><strong>Step 3: Run function goseq() with adjusted probability weightings</strong></p>
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results_countbias</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/goseq/man/goseq.html">goseq</a></span><span class="op">(</span>pwf <span class="op">=</span> <span class="va">ProbabilityWeightings_countbias</span>, <span class="co"># adjusted probability weightings</span></span>
+<span>                                 genome <span class="op">=</span> <span class="st">"hg19"</span>,</span>
+<span>                                 id <span class="op">=</span> <span class="st">"ensGene"</span>,</span>
+<span>                                 test.cats <span class="op">=</span> <span class="st">"GO:BP"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Fetching GO annotations...</span></span>
+<span><span class="co">#&gt; For 995 genes, we could not find any categories. These genes will be excluded.</span></span>
+<span><span class="co">#&gt; To force their use, please run with use_genes_without_cat=TRUE (see documentation).</span></span>
+<span><span class="co">#&gt; This was the default behavior for version 1.15.1 and earlier.</span></span>
+<span><span class="co">#&gt; Calculating the p-values...</span></span>
+<span><span class="co">#&gt; 'select()' returned 1:1 mapping between keys and</span></span>
+<span><span class="co">#&gt; columns</span></span></code></pre></div>
+<p><strong>Step 4: Perform adjustment for multiple testing and inspect final results</strong></p>
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GOSeq_results_countbias</span><span class="op">$</span><span class="va">p_adj_overrepresented</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">GOSeq_results_countbias</span><span class="op">$</span><span class="va">over_represented_pvalue</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Step 5: Inspect the results</strong></p>
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">GOSeq_results_countbias</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        category over_represented_pvalue</span></span>
+<span><span class="co">#&gt; 9794 GO:0072132             0.001651374</span></span>
+<span><span class="co">#&gt; 8615 GO:0060806             0.002373709</span></span>
+<span><span class="co">#&gt; 3792 GO:0030036             0.002652747</span></span>
+<span><span class="co">#&gt; 9544 GO:0071557             0.003349445</span></span>
+<span><span class="co">#&gt; 3786 GO:0030029             0.004301984</span></span>
+<span><span class="co">#&gt; 5449 GO:0035965             0.004806876</span></span>
+<span><span class="co">#&gt; 6217 GO:0043503             0.004827855</span></span>
+<span><span class="co">#&gt; 3962 GO:0030833             0.005561337</span></span>
+<span><span class="co">#&gt; 9365 GO:0071205             0.005738523</span></span>
+<span><span class="co">#&gt; 2050 GO:0008360             0.006366822</span></span>
+<span><span class="co">#&gt;      under_represented_pvalue numDEInCat numInCat</span></span>
+<span><span class="co">#&gt; 9794                0.9999721          2       29</span></span>
+<span><span class="co">#&gt; 8615                1.0000000          1        1</span></span>
+<span><span class="co">#&gt; 3792                0.9997499          4      319</span></span>
+<span><span class="co">#&gt; 9544                0.9999973          1        2</span></span>
+<span><span class="co">#&gt; 3786                0.9995350          4      359</span></span>
+<span><span class="co">#&gt; 5449                0.9999945          1        2</span></span>
+<span><span class="co">#&gt; 6217                0.9999945          1        2</span></span>
+<span><span class="co">#&gt; 3962                0.9998202          2       62</span></span>
+<span><span class="co">#&gt; 9365                0.9999896          1        3</span></span>
+<span><span class="co">#&gt; 2050                0.9997791          2       64</span></span>
+<span><span class="co">#&gt;                                                                                        term</span></span>
+<span><span class="co">#&gt; 9794                                                               mesenchyme morphogenesis</span></span>
+<span><span class="co">#&gt; 8615 negative regulation of cell differentiation involved in embryonic placenta development</span></span>
+<span><span class="co">#&gt; 3792                                                        actin cytoskeleton organization</span></span>
+<span><span class="co">#&gt; 9544                                                           histone H3-K27 demethylation</span></span>
+<span><span class="co">#&gt; 3786                                                           actin filament-based process</span></span>
+<span><span class="co">#&gt; 5449                                                      cardiolipin acyl-chain remodeling</span></span>
+<span><span class="co">#&gt; 6217                                                       skeletal muscle fiber adaptation</span></span>
+<span><span class="co">#&gt; 3962                                            regulation of actin filament polymerization</span></span>
+<span><span class="co">#&gt; 9365                                   protein localization to juxtaparanode region of axon</span></span>
+<span><span class="co">#&gt; 2050                                                               regulation of cell shape</span></span>
+<span><span class="co">#&gt;      ontology p_adj_overrepresented</span></span>
+<span><span class="co">#&gt; 9794       BP                     1</span></span>
+<span><span class="co">#&gt; 8615       BP                     1</span></span>
+<span><span class="co">#&gt; 3792       BP                     1</span></span>
+<span><span class="co">#&gt; 9544       BP                     1</span></span>
+<span><span class="co">#&gt; 3786       BP                     1</span></span>
+<span><span class="co">#&gt; 5449       BP                     1</span></span>
+<span><span class="co">#&gt; 6217       BP                     1</span></span>
+<span><span class="co">#&gt; 3962       BP                     1</span></span>
+<span><span class="co">#&gt; 9365       BP                     1</span></span>
+<span><span class="co">#&gt; 2050       BP                     1</span></span></code></pre></div>
+
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="transformation-of-the-rna-seq-data.html"><span class="header-section-number">4</span> Transformation of the RNA-Seq data</a></div>
+<div class="next"><a href="clusterprofilers-gsea-with-gene-set-database-go.html"><span class="header-section-number">6</span> clusterProfiler’s GSEA (with gene set database GO)</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#goseq"><span class="header-section-number">5</span> GOSeq</a></li>
+<li><a class="nav-link" href="#content-of-this-script"><span class="header-section-number">5.1</span> Content of this script</a></li>
+<li><a class="nav-link" href="#libraries-4"><span class="header-section-number">5.2</span> Libraries</a></li>
+<li><a class="nav-link" href="#load-data-3"><span class="header-section-number">5.3</span> Load data</a></li>
+<li>
+<a class="nav-link" href="#gene-set-analysis"><span class="header-section-number">5.4</span> Gene Set Analysis</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#step-1-preparation-of-required-input-object"><span class="header-section-number">5.4.1</span> Step 1: Preparation of required input object</a></li>
+<li><a class="nav-link" href="#step-2-calculate-probability-weight-for-each-gene"><span class="header-section-number">5.4.2</span> Step 2: Calculate probability weight for each gene</a></li>
+<li><a class="nav-link" href="#step-3-test-for-differential-enrichment"><span class="header-section-number">5.4.3</span> Step 3: Test for differential enrichment</a></li>
+<li><a class="nav-link" href="#step-4-adjust-for-multiple-testing"><span class="header-section-number">5.4.4</span> Step 4: Adjust for multiple testing</a></li>
+<li><a class="nav-link" href="#step-5-interpretation-of-the-results-table"><span class="header-section-number">5.4.5</span> Step 5: Interpretation of the results table</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#researchers-degrees-of-freedom"><span class="header-section-number">5.5</span> Researchers’ degrees of freedom</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#change-1-change-gene-set-database"><span class="header-section-number">5.5.1</span> Change 1: Change gene set database</a></li>
+<li><a class="nav-link" href="#change-2-include-genes-that-are-no-member-of-any-gene-set-in-calculation-of-the-p-value"><span class="header-section-number">5.5.2</span> Change 2: Include genes that are no member of any gene set in calculation of the p-value</a></li>
+<li><a class="nav-link" href="#change-3-change-the-method-for-the-calculation-of-the-p-value"><span class="header-section-number">5.5.3</span> Change 3: Change the method for the calculation of the p-value</a></li>
+<li><a class="nav-link" href="#change-4-change-the-bias-to-account-for-in-the-analysis"><span class="header-section-number">5.5.4</span> Change 4: Change the bias to account for in the analysis</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Practical Guide through Running Gene Set Analysis in R</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-27.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
