@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 14 Libraries | Overview and description of all required libraries</title>
+<meta name="author" content="Milena Wünsch">
+<meta name="description" content="For this part of the instructions, there are no further libraries required.  14.0.1 Load data Both objects, the list of differentially expressed genes as well as the alternative universe can be...">
+<meta name="generator" content="bookdown 0.34 with bs4_book()">
+<meta property="og:title" content="Chapter 14 Libraries | Overview and description of all required libraries">
+<meta property="og:type" content="book">
+<meta property="og:description" content="For this part of the instructions, there are no further libraries required.  14.0.1 Load data Both objects, the list of differentially expressed genes as well as the alternative universe can be...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 14 Libraries | Overview and description of all required libraries">
+<meta name="twitter:description" content="For this part of the instructions, there are no further libraries required.  14.0.1 Load data Both objects, the list of differentially expressed genes as well as the alternative universe can be...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Overview and description of all required libraries</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li class="book-part">Common Processing Steps</li>
+<li><a class="" href="prefiltering.html"><span class="header-section-number">2</span> Prefiltering</a></li>
+<li><a class="" href="content-of-this-script.html"><span class="header-section-number">3</span> Content of this script</a></li>
+<li><a class="" href="preparation-of-rna-seq-data-set-used-for-illustration.html"><span class="header-section-number">4</span> Preparation of RNA-Seq data set used for illustration</a></li>
+<li><a class="" href="gsea-preranking.html"><span class="header-section-number">5</span> GSEA Preranking</a></li>
+<li><a class="" href="content-of-this-script-1.html"><span class="header-section-number">6</span> Content of this script</a></li>
+<li><a class="" href="gene-id-duplicate-removals.html"><span class="header-section-number">7</span> Gene ID Duplicate Removals</a></li>
+<li><a class="" href="content-of-this-script-2.html"><span class="header-section-number">8</span> Content of this script</a></li>
+<li><a class="" href="differential-expression-analysis.html"><span class="header-section-number">9</span> Differential Expression Analysis</a></li>
+<li><a class="" href="rna-seq-transformation.html"><span class="header-section-number">10</span> RNA-Seq Transformation</a></li>
+<li class="book-part">No Gene ID Conversion</li>
+<li><a class="" href="go-seq.html"><span class="header-section-number">11</span> Go SEQ</a></li>
+<li><a class="" href="cluster-profiler-gsea-go.html"><span class="header-section-number">12</span> Cluster Profiler: GSEA GO</a></li>
+<li><a class="" href="david.html"><span class="header-section-number">13</span> DAVID</a></li>
+<li><a class="active" href="libraries-7.html"><span class="header-section-number">14</span> Libraries</a></li>
+<li><a class="" href="gsea-web.html"><span class="header-section-number">15</span> GSEA WEB</a></li>
+<li class="book-part">With Gene ID Conversion</li>
+<li><a class="" href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">16</span> Cluster Profiler: GSEA KEGG</a></li>
+<li><a class="" href="cluster-profiler-ora.html"><span class="header-section-number">17</span> Cluster Profiler: ORA</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">18</span> PADOG</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="libraries-7" class="section level1" number="14">
+<h1>
+<span class="header-section-number">14</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-7"><i class="fas fa-link"></i></a>
+</h1>
+<p>For this part of the instructions, there are no further libraries required.</p>
+<div id="load-data-4" class="section level3" number="14.0.1">
+<h3>
+<span class="header-section-number">14.0.1</span> Load data<a class="anchor" aria-label="anchor" href="#load-data-4"><i class="fas fa-link"></i></a>
+</h3>
+<p>Both objects, the list of differentially expressed genes as well as the alternative universe can be extracted from the results table of differential expression analysis. Note that DAVID works a variety of gene ID formats, including Ensembl ID.</p>
+<p>Here, we will illustrate the process for the limma results only since the process is identical for all methods for differential exression analysis (due to the unification of the column names that refer to the adjusted p-values).</p>
+<div class="sourceCode" id="cb136"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_Differential_Expression_Analysis/DE_results_limma_Ensembl.Rdata"</span><span class="op">)</span></span></code></pre></div>
+<p>Alternatively, you can proceed with the results generated with DESeq2 or edgeR:</p>
+<div class="sourceCode" id="cb137"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># load("./Results_Differential_Expression_Analysis/DE_results_DESeq2_Ensembl.Rdata")</span></span>
+<span><span class="co"># load("./Results_Differential_Expression_Analysis/DE_results_edgeR_Ensembl.Rdata")</span></span></code></pre></div>
+<p>For the purpose of redability, we store limma’s differential expression analysis results in an object with a more neutral name:</p>
+<div class="sourceCode" id="cb138"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">DE_results</span> <span class="op">&lt;-</span> <span class="va">DE_results_limma_Ensembl</span></span></code></pre></div>
+<p>Take a look at the results table:</p>
+<div class="sourceCode" id="cb139"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DE_results</span>, n  <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                      logFC   AveExpr         t      P.Value</span></span>
+<span><span class="co">#&gt; ENSG00000129824  9.2133770 1.9601987 47.132083 1.061719e-55</span></span>
+<span><span class="co">#&gt; ENSG00000099749  6.1709577 0.4153409 40.465602 4.024370e-51</span></span>
+<span><span class="co">#&gt; ENSG00000154620  5.0848991 0.4867874 26.729729 5.097737e-39</span></span>
+<span><span class="co">#&gt; ENSG00000006757 -0.9214380 5.3073131 -8.805751 4.963544e-13</span></span>
+<span><span class="co">#&gt; ENSG00000130021 -0.8516173 2.1365915 -4.388951 3.846411e-05</span></span>
+<span><span class="co">#&gt; ENSG00000185753 -0.5479423 3.6902013 -4.217130 7.121081e-05</span></span>
+<span><span class="co">#&gt; ENSG00000086712 -0.4017993 5.0899555 -4.023482 1.403927e-04</span></span>
+<span><span class="co">#&gt; ENSG00000123689 -1.4679601 5.1661467 -3.850433 2.537689e-04</span></span>
+<span><span class="co">#&gt; ENSG00000177606 -0.5844304 8.2469942 -3.910485 2.069770e-04</span></span>
+<span><span class="co">#&gt; ENSG00000120868  0.4076940 5.9420527  3.832337 2.697515e-04</span></span>
+<span><span class="co">#&gt;                        p_adj           B</span></span>
+<span><span class="co">#&gt; ENSG00000129824 6.631497e-52 94.00193786</span></span>
+<span><span class="co">#&gt; ENSG00000099749 1.256811e-47 86.16860821</span></span>
+<span><span class="co">#&gt; ENSG00000154620 1.061349e-35 68.53453635</span></span>
+<span><span class="co">#&gt; ENSG00000006757 7.750575e-10 19.36978341</span></span>
+<span><span class="co">#&gt; ENSG00000130021 4.804937e-02  2.04582318</span></span>
+<span><span class="co">#&gt; ENSG00000185753 7.413045e-02  1.30583651</span></span>
+<span><span class="co">#&gt; ENSG00000086712 1.252704e-01  0.48313770</span></span>
+<span><span class="co">#&gt; ENSG00000123689 1.684868e-01 -0.04984613</span></span>
+<span><span class="co">#&gt; ENSG00000177606 1.615973e-01 -0.13323415</span></span>
+<span><span class="co">#&gt; ENSG00000120868 1.684868e-01 -0.25078873</span></span></code></pre></div>
+</div>
+<div id="prepare-and-export-required-input-oject" class="section level2" number="14.1">
+<h2>
+<span class="header-section-number">14.1</span> Prepare and export required input oject<a class="anchor" aria-label="anchor" href="#prepare-and-export-required-input-oject"><i class="fas fa-link"></i></a>
+</h2>
+<div id="step-1-generate-required-input-object-2" class="section level3" number="14.1.1">
+<h3>
+<span class="header-section-number">14.1.1</span> Step 1: Generate required input object<a class="anchor" aria-label="anchor" href="#step-1-generate-required-input-object-2"><i class="fas fa-link"></i></a>
+</h3>
+<p>From the results table of differential expression analysis, we generate a list of differentially expressed genes.</p>
+<div class="sourceCode" id="cb140"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># (i) indicate which genes have an (existing!) adjusted p-value &lt; 0.05.</span></span>
+<span><span class="va">ind_DE</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">p_adj</span><span class="op">)</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">p_adj</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># get overview of number of differentially expressed genes</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">ind_DE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ind_DE</span></span>
+<span><span class="co">#&gt; FALSE  TRUE </span></span>
+<span><span class="co">#&gt;  6241     5</span></span>
+<span></span>
+<span><span class="co"># (ii) use the indicator to obtain the list of differentially expressed genes</span></span>
+<span><span class="va">DEG_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span><span class="op">[</span><span class="va">ind_DE</span><span class="op">]</span></span></code></pre></div>
+<p>We take a look at the first genes in vector of differentially expressed genes</p>
+<div class="sourceCode" id="cb141"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">DEG_vec</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "ENSG00000129824" "ENSG00000099749" "ENSG00000154620"</span></span>
+<span><span class="co">#&gt; [4] "ENSG00000006757" "ENSG00000130021"</span></span></code></pre></div>
+<p>Note that in this specific example, there are very few differentially expressed genes.</p>
+</div>
+<div id="step-2-export-vector-of-differentially-expressed-genes" class="section level3" number="14.1.2">
+<h3>
+<span class="header-section-number">14.1.2</span> Step 2: Export vector of differentially expressed genes<a class="anchor" aria-label="anchor" href="#step-2-export-vector-of-differentially-expressed-genes"><i class="fas fa-link"></i></a>
+</h3>
+<p>We store the vector of differentially expressed genes in the file “DEG_vec.txt” in the folder “Input_Objects_DAVID” (which is a subfolder of the folder “data”).</p>
+<div class="sourceCode" id="cb142"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># the path indicates the location (folder(s) and file) of the vector to be stored in</span></span>
+<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="st">"./data/Input_Objects_DAVID/DEG_vec.txt"</span></span>
+<span></span>
+<span><span class="co"># export </span></span>
+<span> <span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span><span class="va">DEG_vec</span>,</span>
+<span>            file <span class="op">=</span> <span class="va">path</span>,</span>
+<span>            quote<span class="op">=</span><span class="cn">FALSE</span>,</span>
+<span>            row.names<span class="op">=</span><span class="cn">FALSE</span>,</span>
+<span>            col.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>The file “DEG_vec.txt” should now have appeared in the folder “Input_Objects_DAVID”.</p>
+</div>
+<div id="step-3-upload-to-david" class="section level3" number="14.1.3">
+<h3>
+<span class="header-section-number">14.1.3</span> Step 3: Upload to DAVID<a class="anchor" aria-label="anchor" href="#step-3-upload-to-david"><i class="fas fa-link"></i></a>
+</h3>
+<p>The resulting .txt file can be directly uploaded to the DAVID website: <a href="https://david.ncifcrf.gov/" class="uri">https://david.ncifcrf.gov/</a></p>
+</div>
+</div>
+<div id="researchers-degrees-of-freedom-2" class="section level2" number="14.2">
+<h2>
+<span class="header-section-number">14.2</span> Researchers’ degrees of freedom<a class="anchor" aria-label="anchor" href="#researchers-degrees-of-freedom-2"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this part, we will illustrate how to create an alternative universe to DAVID, which is a researchers’ degree of freedom. It is important to note that the intention behind going through the researchers’ degrees of freedom is to give you an understanding of what you can do to adapt the given (parameter) setting to the research question. It is even more important to keep in mind that the intention behind going through these flexible parameters is NOT to change them in order to help you obtain the most preferable results by systematically changing these parameters since such behaviour would correspond to “cherry-picking”. Any changes in the parameter choice must be documented transparently.</p>
+<div id="step-1-generate-alternative-universe" class="section level3" number="14.2.1">
+<h3>
+<span class="header-section-number">14.2.1</span> Step 1: Generate alternative universe<a class="anchor" aria-label="anchor" href="#step-1-generate-alternative-universe"><i class="fas fa-link"></i></a>
+</h3>
+<p>For the alternative universe, we want to consider all genes whose differential expression was measured in the experiment For some methods for differential expression analysis, such as DESeq2, the adjusted p-values of some genes are set to NA which means that these genes cannot be detected as neither differentially expressed nor not differentially expressed. We therefore want to remove these from the universe.</p>
+<div class="sourceCode" id="cb143"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># indicate which genes have an adjusted p-value in the results of differential expression analysis</span></span>
+<span><span class="va">ind_nona_p</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">p_adj</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># filter the list of genes to those with an existing adjusted p-value</span></span>
+<span><span class="va">alternative_universe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span><span class="op">[</span><span class="va">ind_nona_p</span><span class="op">]</span></span></code></pre></div>
+<p>Inspect the first few genes from the universe</p>
+<div class="sourceCode" id="cb144"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">alternative_universe</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "ENSG00000129824" "ENSG00000099749" "ENSG00000154620"</span></span>
+<span><span class="co">#&gt;  [4] "ENSG00000006757" "ENSG00000130021" "ENSG00000185753"</span></span>
+<span><span class="co">#&gt;  [7] "ENSG00000086712" "ENSG00000123689" "ENSG00000177606"</span></span>
+<span><span class="co">#&gt; [10] "ENSG00000120868"</span></span></code></pre></div>
+</div>
+<div id="step-2-export-alternative-universe" class="section level3" number="14.2.2">
+<h3>
+<span class="header-section-number">14.2.2</span> Step 2: Export alternative universe<a class="anchor" aria-label="anchor" href="#step-2-export-alternative-universe"><i class="fas fa-link"></i></a>
+</h3>
+<p>We store the vector of differentially expressed genes in the file “alternative_universe.txt” in the folder “Input_Objects_DAVID” (which is a subfolder of the folder “data”).</p>
+<div class="sourceCode" id="cb145"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">path_alt_universe</span> <span class="op">&lt;-</span> <span class="st">"./data/Input_Objects_DAVID/alternative_universe.txt"</span></span>
+<span></span>
+<span><span class="co"># export </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span><span class="va">alternative_universe</span>,</span>
+<span>            file <span class="op">=</span> <span class="va">path_alt_universe</span>,</span>
+<span>            quote<span class="op">=</span><span class="cn">FALSE</span>,</span>
+<span>            row.names<span class="op">=</span><span class="cn">FALSE</span>,</span>
+<span>            col.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>The file “alternative_universe.txt” should now have appeared in the folder “Input_Objects_DAVID”.</p>
+
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="david.html"><span class="header-section-number">13</span> DAVID</a></div>
+<div class="next"><a href="gsea-web.html"><span class="header-section-number">15</span> GSEA WEB</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li>
+<a class="nav-link" href="#libraries-7"><span class="header-section-number">14</span> Libraries</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#load-data-4"><span class="header-section-number">14.0.1</span> Load data</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#prepare-and-export-required-input-oject"><span class="header-section-number">14.1</span> Prepare and export required input oject</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#step-1-generate-required-input-object-2"><span class="header-section-number">14.1.1</span> Step 1: Generate required input object</a></li>
+<li><a class="nav-link" href="#step-2-export-vector-of-differentially-expressed-genes"><span class="header-section-number">14.1.2</span> Step 2: Export vector of differentially expressed genes</a></li>
+<li><a class="nav-link" href="#step-3-upload-to-david"><span class="header-section-number">14.1.3</span> Step 3: Upload to DAVID</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#researchers-degrees-of-freedom-2"><span class="header-section-number">14.2</span> Researchers’ degrees of freedom</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#step-1-generate-alternative-universe"><span class="header-section-number">14.2.1</span> Step 1: Generate alternative universe</a></li>
+<li><a class="nav-link" href="#step-2-export-alternative-universe"><span class="header-section-number">14.2.2</span> Step 2: Export alternative universe</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Overview and description of all required libraries</strong>" was written by Milena Wünsch. It was last built on 2023-07-17.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

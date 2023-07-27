@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 6 RNA-Seq Transformation | RNA Sequencing Guide</title>
+<meta name="author" content="Milena Wünsch and Pat Callahan">
+<meta name="description" content="Branching point: continue to the next chapter if conversion of gene IDs is not necessary. However, if conversion was/is necessary, proceed to Chapter ?? Cluster Profiler.  6.1 Content of this...">
+<meta name="generator" content="bookdown 0.34 with bs4_book()">
+<meta property="og:title" content="Chapter 6 RNA-Seq Transformation | RNA Sequencing Guide">
+<meta property="og:type" content="book">
+<meta property="og:description" content="Branching point: continue to the next chapter if conversion of gene IDs is not necessary. However, if conversion was/is necessary, proceed to Chapter ?? Cluster Profiler.  6.1 Content of this...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 6 RNA-Seq Transformation | RNA Sequencing Guide">
+<meta name="twitter:description" content="Branching point: continue to the next chapter if conversion of gene IDs is not necessary. However, if conversion was/is necessary, proceed to Chapter ?? Cluster Profiler.  6.1 Content of this...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">RNA Sequencing Guide</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li class="book-part">Common Processing Steps</li>
+<li><a class="" href="prefiltering.html"><span class="header-section-number">2</span> Prefiltering</a></li>
+<li><a class="" href="gsea-preranking.html"><span class="header-section-number">3</span> GSEA Preranking</a></li>
+<li><a class="" href="gene-id-duplicate-removals.html"><span class="header-section-number">4</span> Gene ID Duplicate Removals</a></li>
+<li><a class="" href="differential-expression-analysis.html"><span class="header-section-number">5</span> Differential Expression Analysis</a></li>
+<li><a class="active" href="rna-seq-transformation.html"><span class="header-section-number">6</span> RNA-Seq Transformation</a></li>
+<li class="book-part">No Gene ID Conversion</li>
+<li><a class="" href="go-seq.html"><span class="header-section-number">7</span> Go SEQ</a></li>
+<li><a class="" href="cluster-profiler-gsea-go.html"><span class="header-section-number">8</span> Cluster Profiler: GSEA GO</a></li>
+<li><a class="" href="david.html"><span class="header-section-number">9</span> DAVID</a></li>
+<li><a class="" href="gsea-web.html"><span class="header-section-number">10</span> GSEA WEB</a></li>
+<li class="book-part">With Gene ID Conversion</li>
+<li><a class="" href="cluster-profiler-gsea-kegg.html"><span class="header-section-number">11</span> Cluster Profiler: GSEA KEGG</a></li>
+<li><a class="" href="cluster-profiler-ora.html"><span class="header-section-number">12</span> Cluster Profiler: ORA</a></li>
+<li><a class="" href="padog.html"><span class="header-section-number">13</span> PADOG</a></li>
+</ul>
+
+        <div class="book-extra">
+          
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="rna-seq-transformation" class="section level1" number="6">
+<h1>
+<span class="header-section-number">6</span> RNA-Seq Transformation<a class="anchor" aria-label="anchor" href="#rna-seq-transformation"><i class="fas fa-link"></i></a>
+</h1>
+<p>Branching point: continue to the next chapter if conversion of gene IDs is not necessary. However, if conversion was/is necessary, proceed to Chapter ?? Cluster Profiler.</p>
+<div id="content-of-this-script" class="section level2" number="6.1">
+<h2>
+<span class="header-section-number">6.1</span> Content of this script<a class="anchor" aria-label="anchor" href="#content-of-this-script"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this file, we will transform the RNA-Seq data to align its characteristics with those of microarray measurements using two approaches:<br></p>
+<ul>
+<li>approach 1: transformation using voom</li>
+<li>approach 2: transformation using DESeq2’s varianceStabilizingTransformation</li>
+</ul>
+<p>Note that PADOG and GSEA, which are the two tools in this paper that require a (manual) transformation of the RNA-Seq data, require the genes in a different format:</p>
+<ul>
+<li>PADOG: Entrez gene ID -&gt; requires the gene expression data with converted gene IDs</li>
+<li>web-based tool GSEA: Ensembl gene ID -&gt; required gene expression data with initial gene IDs</li>
+</ul>
+<p>We here illustrate the procedure for both transformation methods for Entrez ID, while the identical procedure for Ensembl ID is provided in the corresponding .R-file.</p>
+<div id="libraries-4" class="section level3" number="6.1.1">
+<h3>
+<span class="header-section-number">6.1.1</span> Libraries<a class="anchor" aria-label="anchor" href="#libraries-4"><i class="fas fa-link"></i></a>
+</h3>
+<p>All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.</p>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"tweeDEseqCountData"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"limma"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"edgeR"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html">install</a></span><span class="op">(</span><span class="st">"DESeq2"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.creal.cat/jrgonzalez/software.htm">tweeDEseqCountData</a></span><span class="op">)</span> <span class="co"># for pickrell data set </span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/limma">limma</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://bioinf.wehi.edu.au/edgeR">edgeR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mikelove/DESeq2">DESeq2</a></span><span class="op">)</span></span></code></pre></div>
+<p>Description of the libraries:</p>
+<ul>
+<li><p>tweeDESeqCountData: Both methods for the transformation of the RNA-Seq data require the conditions of the samples of the gene expression data set which, in the case of the Pickrell data set, we obtain by the corresponding library.</p></li>
+<li><p>limma: Since the first method for the transformation of the RNA-Seq data is based on limma’s voom, we have to load the corresponding library.</p></li>
+<li><p>edgeR: Normalization is an additional component of the transformation of the RNA-Seq data and the first method employs (by default) a normalization technique provided by the edgeR library.</p></li>
+<li><p>DESeq2: Since the second method for the transformation of the RNA-Seq data is provided by DESeq2, we have to load the corresponding library.</p></li>
+</ul>
+<div id="load-data-2" class="section level4" number="6.1.1.1">
+<h4>
+<span class="header-section-number">6.1.1.1</span> Load data<a class="anchor" aria-label="anchor" href="#load-data-2"><i class="fas fa-link"></i></a>
+</h4>
+<p>We load the pre-filtered gene expression data sets</p>
+<ol style="list-style-type: decimal">
+<li>with the genes identified in the initial Ensembl ID format.</li>
+<li>with the genes converted to the NCBI (Entrez) ID format.</li>
+</ol>
+<p>Note that for the purpose of simplicity, we here assume that the gene expression measurements have been filtered using the simple approach to pre-filtering introduced by DESeq2.</p>
+<p>To obtain the sample conditions of the pickrell data set (which are the respective gender), we also have to load the data.</p>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># for PADOG:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_DESeq2.Rdata"</span><span class="op">)</span></span>
+<span><span class="co"># for GSEA </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span><span class="st">"./data/Results_PreFiltering/expression_data_filterDESeq2.Rdata"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># load pickrell data </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">pickrell</span><span class="op">)</span></span>
+<span><span class="co"># assign the conditions of the samples to object "sample_conditions"</span></span>
+<span><span class="va">sample_conditions</span> <span class="op">&lt;-</span> <span class="va">pickrell.eset</span><span class="op">$</span><span class="va">gender</span></span></code></pre></div>
+<p>For the purpose of readability, we will work with both objects with more neutral names:</p>
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># gene expression data set with gene IDs converted to Entrez ID format: </span></span>
+<span><span class="va">expression_data_filt_conv</span> <span class="op">&lt;-</span> <span class="va">exprdat_filter_conv_DESeq2</span></span>
+<span><span class="co"># gene expression data set with gene IDs in initial Ensembl ID format: </span></span>
+<span><span class="va">expression_data_filt</span> <span class="op">&lt;-</span> <span class="va">expression_data_filterDESeq2</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="transformation-of-the-gene-expression-data-set-with-converted-entrez-ids" class="section level2" number="6.2">
+<h2>
+<span class="header-section-number">6.2</span> Transformation of the gene expression data set with converted (Entrez) IDs<a class="anchor" aria-label="anchor" href="#transformation-of-the-gene-expression-data-set-with-converted-entrez-ids"><i class="fas fa-link"></i></a>
+</h2>
+<div id="approach-1-transformation-using-voom" class="section level3" number="6.2.1">
+<h3>
+<span class="header-section-number">6.2.1</span> Approach 1: Transformation using voom<a class="anchor" aria-label="anchor" href="#approach-1-transformation-using-voom"><i class="fas fa-link"></i></a>
+</h3>
+<div id="step-1-generate-a-dgelist-object-from-the-gene-expression-data" class="section level4" number="6.2.1.1">
+<h4>
+<span class="header-section-number">6.2.1.1</span> step 1: Generate a DGEList object from the gene expression data<a class="anchor" aria-label="anchor" href="#step-1-generate-a-dgelist-object-from-the-gene-expression-data"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">counts_voom</span> <span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/DGEList.html">DGEList</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">expression_data_filt_conv</span>, </span>
+<span>                      group <span class="op">=</span> <span class="va">sample_conditions</span><span class="op">)</span></span></code></pre></div>
+<p>Function arguments:</p>
+<ul>
+<li><p>counts: corresponds the gene expression measurements</p></li>
+<li><p>group: corresponds to the conditions of the samples</p></li>
+</ul>
+</div>
+<div id="step-2-normalization-2" class="section level4" number="6.2.1.2">
+<h4>
+<span class="header-section-number">6.2.1.2</span> step 2: Normalization<a class="anchor" aria-label="anchor" href="#step-2-normalization-2"><i class="fas fa-link"></i></a>
+</h4>
+<p>Note that we here use the default normalization method TMM (“Trimmed mean of M-values”). Other choices for normalization can be specified in the argument “method” in function calcNormFactors().</p>
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">counts_voom</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/calcNormFactors.html">calcNormFactors</a></span><span class="op">(</span><span class="va">counts_voom</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="step-3-run-voom" class="section level4" number="6.2.1.3">
+<h4>
+<span class="header-section-number">6.2.1.3</span> step 3: Run voom<a class="anchor" aria-label="anchor" href="#step-3-run-voom"><i class="fas fa-link"></i></a>
+</h4>
+<p>Note that we do NOT make use of the precision weights that are an official part of voom. Instead, we only proceed with the cpm-transformed (and normalized) gene expression measurements.</p>
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_voomtransformed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/voom.html">voom</a></span><span class="op">(</span><span class="va">counts_voom</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="step-4-convert-resulting-data-set-to-data-frame" class="section level4" number="6.2.1.4">
+<h4>
+<span class="header-section-number">6.2.1.4</span> step 4: Convert resulting data set to data frame<a class="anchor" aria-label="anchor" href="#step-4-convert-resulting-data-set-to-data-frame"><i class="fas fa-link"></i></a>
+</h4>
+<p>At this point, the transformed gene expression measurements are stored in the object “expression_data_voomtransformed” in the form of an EList object. For the further use in GSA (here specifically: PADOG), we want to convert the transformed gene expression measurements to a data frame.</p>
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_voomtransformed_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">expression_data_voomtransformed</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># inspect (part of) the transformed gene expression data set </span></span>
+<span><span class="va">expression_data_voomtransformed_Entrez</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
+<span><span class="co">#&gt;         NA18486  NA18498   NA18499  NA18501  NA18502</span></span>
+<span><span class="co">#&gt; 8813  3.5635974 4.994885 4.0568571 5.047515 4.808758</span></span>
+<span><span class="co">#&gt; 57147 3.5635974 4.924837 5.4652000 4.994566 4.911852</span></span>
+<span><span class="co">#&gt; 55732 1.5311760 2.828374 2.1093245 3.462552 2.686139</span></span>
+<span><span class="co">#&gt; 2268  4.2615689 4.413337 4.0920466 4.319188 4.626761</span></span>
+<span><span class="co">#&gt; 2519  3.9543874 4.586669 3.7830963 4.230379 3.614586</span></span>
+<span><span class="co">#&gt; 4800  7.3077585 6.731166 7.1453673 6.716623 7.143454</span></span>
+<span><span class="co">#&gt; 81887 4.0941122 2.765639 0.8869321 2.340562 2.686139</span></span>
+<span><span class="co">#&gt; 22875 4.7859899 6.986313 6.1557990 6.356387 5.726296</span></span>
+<span><span class="co">#&gt; 5893  0.8790993 1.361248 1.4174468 1.953539 1.191375</span></span>
+<span><span class="co">#&gt; 572   4.6716572 4.622514 4.7504301 3.538501 4.626761</span></span>
+<span><span class="co">#&gt;        NA18504   NA18505   NA18507  NA18508   NA18510</span></span>
+<span><span class="co">#&gt; 8813  4.504121 5.3436244 5.4990159 4.767209 4.5153346</span></span>
+<span><span class="co">#&gt; 57147 4.542089 5.4980707 4.6236036 4.682940 4.5153346</span></span>
+<span><span class="co">#&gt; 55732 2.362766 2.3995808 2.5490566 2.837111 1.9792817</span></span>
+<span><span class="co">#&gt; 2268  4.157946 3.3678720 4.6645338 2.271514 4.5153346</span></span>
+<span><span class="co">#&gt; 2519  3.701568 4.2854098 4.4704468 4.002697 3.7448165</span></span>
+<span><span class="co">#&gt; 4800  6.688931 6.7738643 6.4559472 6.451025 6.9021139</span></span>
+<span><span class="co">#&gt; 81887 1.734734 2.8302152 2.5490566 2.913060 3.0265875</span></span>
+<span><span class="co">#&gt; 22875 5.455212 6.9394139 6.4559472 5.899121 5.4211193</span></span>
+<span><span class="co">#&gt; 5893  1.445228 0.6833738 0.6745875 1.328097 0.8797461</span></span>
+<span><span class="co">#&gt; 572   5.120793 4.3517523 4.8175455 4.787529 5.3852741</span></span></code></pre></div>
+</div>
+</div>
+<div id="approach-2-transformation-using-deseq2s-variancestabilizingtransformation" class="section level3" number="6.2.2">
+<h3>
+<span class="header-section-number">6.2.2</span> Approach 2: Transformation using DESeq2’s VarianceStabilizingTransformation<a class="anchor" aria-label="anchor" href="#approach-2-transformation-using-deseq2s-variancestabilizingtransformation"><i class="fas fa-link"></i></a>
+</h3>
+<div id="step-1-generate-a-data-frame-to-contain-the-condition-of-each-sample" class="section level4" number="6.2.2.1">
+<h4>
+<span class="header-section-number">6.2.2.1</span> step 1: generate a data frame to contain the condition of each sample:<a class="anchor" aria-label="anchor" href="#step-1-generate-a-data-frame-to-contain-the-condition-of-each-sample"><i class="fas fa-link"></i></a>
+</h4>
+<p>Just like starting point of differential expression analysis, we here need to generate the input object(s) required when working with DESeq2. Here, we generate the data frame colnames which contains for each sample (rownames) the corresponding condition (in the form of “treated” vs. “untreated”).</p>
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># the names of the samples are stored as the row names of the data frame</span></span>
+<span><span class="co"># -&gt; important: make sure that the order of the conditions in sample_conditions corresponds to the order of the </span></span>
+<span><span class="co">#               samples in expression_data</span></span>
+<span>  <span class="va">coldata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">sample_conditions</span>, </span>
+<span>                        row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">expression_data_filt_conv</span><span class="op">)</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="co"># rename the column header to "condition" </span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"condition"</span></span>
+<span>  </span>
+<span><span class="co"># recode the variable condition as a factor </span></span>
+<span><span class="co"># rename the sample conditions (in this case from "female" and "male") to "untreated" and "treated"</span></span>
+<span><span class="co"># note: make sure that the control level in variable condition is coded as the first level (i.e. "untreated")</span></span>
+<span></span>
+<span><span class="va">coldata</span><span class="op">$</span><span class="va">condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">coldata</span><span class="op">$</span><span class="va">condition</span>, </span>
+<span>                            labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"untreated"</span>,<span class="st">"treated"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># inspect resulting data frame: </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">coldata</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         condition</span></span>
+<span><span class="co">#&gt; NA18486   treated</span></span>
+<span><span class="co">#&gt; NA18498   treated</span></span>
+<span><span class="co">#&gt; NA18499 untreated</span></span>
+<span><span class="co">#&gt; NA18501   treated</span></span>
+<span><span class="co">#&gt; NA18502 untreated</span></span>
+<span><span class="co">#&gt; NA18504   treated</span></span>
+<span><span class="co">#&gt; NA18505 untreated</span></span>
+<span><span class="co">#&gt; NA18507   treated</span></span>
+<span><span class="co">#&gt; NA18508 untreated</span></span>
+<span><span class="co">#&gt; NA18510   treated</span></span></code></pre></div>
+</div>
+<div id="step-2-generate-deseqdataset" class="section level4" number="6.2.2.2">
+<h4>
+<span class="header-section-number">6.2.2.2</span> step 2: Generate DESeqDataSet<a class="anchor" aria-label="anchor" href="#step-2-generate-deseqdataset"><i class="fas fa-link"></i></a>
+</h4>
+<p>DESeq2 eventually operates on a “DESeqDataSet”, which contains the gene expression measurements, the information on the samples (here: the sample conditions) as well as the indication on which variables the count data of each sample depend on.</p>
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dds</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/DESeqDataSet.html">DESeqDataSetFromMatrix</a></span><span class="op">(</span>countData <span class="op">=</span> <span class="va">expression_data_filt_conv</span>, </span>
+<span>                            colData <span class="op">=</span> <span class="va">coldata</span>, </span>
+<span>                            design <span class="op">=</span> <span class="op">~</span> <span class="va">condition</span><span class="op">)</span></span></code></pre></div>
+<p>Relevant arguments in function DESeqDataSetFromMatrix:</p>
+<ul>
+<li><p>countData: count data from the gene expression data set</p></li>
+<li><p>colData: data frame that contains information on the samples (see above) such as the conditions of the samples (required) and possibly further variables to correct for (such as batch effects)</p></li>
+<li>
+<p>design: indicates which variables from colData are used for modelling</p>
+<ul>
+<li>more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model</li>
+<li>if more than one variable from colData are used in argument design (e.g. a second variable “batch”), the syntax changes to the following formula: “design ~ batch + condition”</li>
+</ul>
+</li>
+</ul>
+<p>Here, we disregard any possible batch effects and focus on the conditions of the samples.</p>
+</div>
+<div id="step-3-perform-deseq2s-variancestabilizingtransformation" class="section level4" number="6.2.2.3">
+<h4>
+<span class="header-section-number">6.2.2.3</span> step 3: Perform DESeq2’s varianceStabilizingTransformation<a class="anchor" aria-label="anchor" href="#step-3-perform-deseq2s-variancestabilizingtransformation"><i class="fas fa-link"></i></a>
+</h4>
+<p>This transformation results in values with a variance approximately that is approximately constant throughout the range of the mean. Furthermore, the values are normalized for library size.</p>
+<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># perform variance stabilizing transformation</span></span>
+<span><span class="va">expression_data_vsttransformed</span> <span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/pkg/DESeq2/man/vst.html">vst</a></span><span class="op">(</span><span class="va">dds</span><span class="op">)</span></span>
+<span>    </span>
+<span><span class="co"># since the data set is now in the format of a DESeqTransform data set, the transformed count data are not directly accessible use function assay() which lets us access the count data:</span></span>
+<span><span class="va">expression_data_vsttransformed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html">assay</a></span><span class="op">(</span><span class="va">expression_data_vsttransformed</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="step-4-convert-to-data-frame" class="section level4" number="6.2.2.4">
+<h4>
+<span class="header-section-number">6.2.2.4</span> step 4: Convert to data frame<a class="anchor" aria-label="anchor" href="#step-4-convert-to-data-frame"><i class="fas fa-link"></i></a>
+</h4>
+<p>We convert the transformed gene expression data set to a data frame.</p>
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">expression_data_vsttransformed_Entrez</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">expression_data_vsttransformed</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># inspect (part of) the transformed gene expression data set </span></span>
+<span><span class="va">expression_data_vsttransformed_Entrez</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
+<span><span class="co">#&gt;        NA18486  NA18498  NA18499  NA18501  NA18502  NA18504</span></span>
+<span><span class="co">#&gt; 8813  5.475282 6.471173 5.786311 6.551076 6.317231 6.107874</span></span>
+<span><span class="co">#&gt; 57147 5.475282 6.416409 6.857113 6.508884 6.396753 6.135961</span></span>
+<span><span class="co">#&gt; 55732 4.471560 5.050287 4.706549 5.425412 4.967019 4.813408</span></span>
+<span><span class="co">#&gt; 2268  5.939797 6.032867 5.810294 5.996914 6.179690 5.859580</span></span>
+<span><span class="co">#&gt; 2519  5.727813 6.159507 5.605070 5.933449 5.487017 5.554671</span></span>
+<span><span class="co">#&gt; 4800  8.527528 7.963648 8.355275 7.998985 8.336457 7.943355</span></span>
+<span><span class="co">#&gt; 81887 5.822793 5.018101 4.256734 4.818117 4.967019 4.540723</span></span>
+<span><span class="co">#&gt; 22875 6.327592 8.199396 7.451246 7.670505 7.061865 6.857525</span></span>
+<span><span class="co">#&gt; 5893  4.246067 4.421462 4.433534 4.644343 4.349009 4.429268</span></span>
+<span><span class="co">#&gt; 572   6.240388 6.186132 6.286555 5.472331 6.179690 6.583569</span></span>
+<span><span class="co">#&gt;        NA18505  NA18507  NA18508  NA18510</span></span>
+<span><span class="co">#&gt; 8813  6.751417 6.884505 6.290273 6.117851</span></span>
+<span><span class="co">#&gt; 57147 6.879356 6.190724 6.226492 6.117851</span></span>
+<span><span class="co">#&gt; 55732 4.831633 4.910830 5.048319 4.647757</span></span>
+<span><span class="co">#&gt; 2268  5.343466 6.221367 4.774482 6.117851</span></span>
+<span><span class="co">#&gt; 2519  5.939749 6.077764 5.742060 5.585061</span></span>
+<span><span class="co">#&gt; 4800  8.004757 7.718627 7.704235 8.140429</span></span>
+<span><span class="co">#&gt; 81887 5.044543 4.910830 5.088151 5.156246</span></span>
+<span><span class="co">#&gt; 22875 8.157830 7.718627 7.215519 6.830071</span></span>
+<span><span class="co">#&gt; 5893  4.187743 4.199785 4.400327 4.244141</span></span>
+<span><span class="co">#&gt; 572   5.986951 6.337580 6.305771 6.800351</span></span></code></pre></div>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  <div class="chapter-nav">
+<div class="prev"><a href="differential-expression-analysis.html"><span class="header-section-number">5</span> Differential Expression Analysis</a></div>
+<div class="next"><a href="go-seq.html"><span class="header-section-number">7</span> Go SEQ</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#rna-seq-transformation"><span class="header-section-number">6</span> RNA-Seq Transformation</a></li>
+<li>
+<a class="nav-link" href="#content-of-this-script"><span class="header-section-number">6.1</span> Content of this script</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#libraries-4"><span class="header-section-number">6.1.1</span> Libraries</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#transformation-of-the-gene-expression-data-set-with-converted-entrez-ids"><span class="header-section-number">6.2</span> Transformation of the gene expression data set with converted (Entrez) IDs</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#approach-1-transformation-using-voom"><span class="header-section-number">6.2.1</span> Approach 1: Transformation using voom</a></li>
+<li><a class="nav-link" href="#approach-2-transformation-using-deseq2s-variancestabilizingtransformation"><span class="header-section-number">6.2.2</span> Approach 2: Transformation using DESeq2’s VarianceStabilizingTransformation</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+          
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>RNA Sequencing Guide</strong>" was written by Milena Wünsch and Pat Callahan. It was last built on 2023-07-19.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

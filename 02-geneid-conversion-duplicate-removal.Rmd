@@ -1,0 +1,434 @@
+
+# Gene ID conversion and removal of the resulting duplicated gene IDs
+
+
+In this script, we will go through the process of 
+
+1. converting the given gene IDs in the initial (Ensembl ID) format to a different (namely NCBI Entrez ID [@sayers2022database]) format 
+2. removing the resulting duplicated gene IDs 
+
+In this document, we illustrate this process for one of the two pre-filtered gene expression data sets created in Chapter 'Pre-Filtering': 
+
+- **expression_data_filterByExpr**: Gene expression data set that has been pre-filtered using edgeR's builtin function *filterByExpr()*.
+
+In the corresponding R-Script "Instructions_GeneID_Conversion_DuplicatesRemoval.R", we additionally illustrate the identical process for the gene expression data set 
+
+- **expression_data_filterDESeq2**: Gene expression data set that has been pre-filtered using the approach proposed by DESeq2 
+
+
+
+## Libraries 
+
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.
+
+
+```{r, eval = FALSE}
+install.packages("BiocManager")
+BiocManager::install("clusterProfiler")
+BiocManager::install("org.Hs.eg.db")
+```
+
+**Load libraries**
+```{r, message = FALSE}
+library(clusterProfiler)
+library(org.Hs.eg.db)
+```
+
+Description of the libraries: 
+
+- **clusterProfiler**: We here use clusterProfiler's function for gene ID conversion.
+
+- **org.Hs.eg.db**: Provides genome-wide annotation for humans. When working with a different organism,  the user has to provide a different package ('Overview_Packages'). Note that this library is required when running clusterProfiler's function for gene ID conversion.
+
+
+## Load data 
+
+Load the pre-filtered gene expression data sets generated in Chapter 'Pre-Filtering' which are stored in file "Results_PreFiltering".
+
+
+```{r}
+load("./data/Results_PreFiltering/expression_data_filterByExpr.Rdata")
+# The alternative gene expression data set would be 
+# load("./data/Results_PreFiltering/expression_data_filterDESeq2.Rdata")
+
+```
+Inspect dimension of current gene expression data set
+```{r}
+dim(expression_data_filterByExpr)
+```
+
+## Step 1: Convert Ensembl IDs to NCBI (Entrez) IDs
+
+**(i) Obtain mapping from Ensembl to Entrez ID format** 
+
+```{r}
+# the rownames of the gene expression data set correspond to the gene IDs 
+bitr_EnsToEntr <- bitr(gene = rownames(expression_data_filterByExpr), 
+                         fromType = "ENSEMBL", 
+                         toType = "ENTREZID", 
+                         OrgDb = org.Hs.eg.db)
+
+```
+Observe the warning message: Some of the gene IDs in the initial (Ensembl) ID format could not be translated to a gene ID in the desired (Entrez) ID format. 
+
+Description of function: *bitr()* translates the gene IDs of format "fromType" to the format "toType". 
+
+Description of arguments: 
+
+- **geneID**: gene IDs to be converted (stored in the rownames of the gene expression data set)
+
+- **fromType**: initial gene ID format that is to be converted
+
+- **toType**: gene ID format to be converted to 
+
+- **OrgDb**: annotation data base of organisms from which the gene expression measurements originate. The corresponding argument must be loaded as a library (see above)
+
+Note that the arguments "fromType" and "toType" must be set as one of the following, depending on the given and the 
+required gene ID format: 
+
+ACCNUM, ALIAS, Ensembl, EnsemblPROT, EnsemblTRANS, ENTREZID, ENZYME, EVIDENCE, 
+EVIDENCEALL, GENENAME, GENETYPE, GO, GOALL, IPI, MAP, OMIM, ONTOLOGY, ONTOLOGYALL, PATH, PFAM, PMID, PROSITE, 
+REFSEQ, SYMBOL, UCSCKG, UNIPROT.
+
+
+**Inspect object bitr_EnsToEntr**
+
+```{r}
+head(bitr_EnsToEntr)
+```
+
+See that *bitr()* results in a mapping between the initial (Ensembl ID) and the desired (Entrez ID) format 
+
+We observe that: 
+
+- not all Ensembl gene IDs can be mapped to a corresponding Entrez gene ID
+
+- some individual Ensembl gene IDs were mapped to multiple distinct Entrez gene IDs
+
+- some distinct Ensembl gene IDs were mapped to an identical Entrez gene ID 
+
+**(ii) Concatenate mapping with initial gene expression data set**
+
+Concatenate initial gene expression data set with the mapping from initial (Ensembl) to required (Entrez) gene ID format. Merge by row names of expression data set and Ensembl ID of gene ID mapping.
+
+```{r}
+merged_expression_data_filterByExpr <- merge(x = expression_data_filterByExpr, 
+                                              y = bitr_EnsToEntr, 
+                                              by.x=0, 
+                                              by.y="ENSEMBL", 
+                                              all.y=TRUE, sort=TRUE)
+```
+
+Description of function arguments: 
+
+- **by.x** and **by.y**: specify by which columns expression_data_filterByExpr and bitr_EnsToEntr are concatenated:
+
+- **by.x = 0**: use row names of expression_data_filterByExpr (the row names contain the gene IDs)
+
+- **by.y = "ENSEMBL"**: use the column that contains the Ensembl IDs 
+
+
+**Take a look at the dimension of resulting data set**
+
+```{r}
+dim(merged_expression_data_filterByExpr)
+```
+
+We observe that 
+
+- the number of genes in merged_expression_data_filterByExpr has decreased to 6040
+
+  + this is directly caused by the circumstance that typically, not all initial (Ensembl) gene IDs can be converted to the required (Entrez) gene ID 
+  
+- the expression data set has been extended by two columns:
+
+  + the very last column (here called "ENTREZID" containing the converted (Entrez) gene ID
+  
+  + the very first column (here called Row.names) with the initial (Ensembl) gene IDs that were originally stored in the row names
+
+
+## Step 2: Take a closer look at the duplicated gene IDs
+
+**Case 1: A single Ensembl ID is mapped to multiple distinct Entrez IDs**
+
+From the mapping, obtain the number of cases in which an Ensembl ID was converted to several ENTREZ IDs, i.e. the number of times an Ensembl ID appears more than once in the mapping: 
+
+```{r}
+ sum(duplicated(bitr_EnsToEntr$ENSEMBL)) 
+```
+  
+  
+Obtain a list of all duplicated Ensembl IDs (i.e. all Ensembl IDs that were mapped to multiple distinct Entrez IDs) and inspect the corresponding conversion pattern to Entrez ID. 
+
+
+```{r}
+# indicate which Ensembl IDs are duplicated 
+ind_duplicated <- duplicated(bitr_EnsToEntr$ENSEMBL)
+
+# filter the list of all Ensembl IDs to those that are mapped to multiple Entrez IDs 
+dupl_ensembl<-unique(bitr_EnsToEntr$ENSEMBL[ind_duplicated])
+
+# take a look at some of the Ensembl IDs
+head(dupl_ensembl, n = 5)
+```
+
+We now want have a look the mapping pattern causing the duplicated ENSEMBL IDs
+
+```{r}
+# filter mapping to those Ensembl IDs that are mapped to multiple Entrez IDs 
+duplicated_conversion_ens <- bitr_EnsToEntr[bitr_EnsToEntr$ENSEMBL %in% dupl_ensembl,]
+      
+
+# take a look at the mapping resulting in duplicated Ensembl IDs 
+head(duplicated_conversion_ens, n = 6)
+```
+Observe that there are three unique ENSEMBL IDs, each being mapped to two distinct Entrez IDs. 
+
+
+**Case 2: Multiple Ensembl IDs are mapped to the same Entrez ID**
+
+In this case, the corresponding Entrez IDs appear repeatedly in the mapping. 
+
+From the mapping, obtain the number of cases in which multiple Ensembl IDs are mapped to the same Entrez ID. 
+
+```{r}
+sum(duplicated(bitr_EnsToEntr$ENTREZ)) 
+```
+
+
+Obtain a list of all duplicated Entrez IDs, i.e. those Entrez IDs that appear more then once in the mapping, and inspect the corresponding conversion pattern. 
+
+```{r}
+# indicate which Entrez IDs appear more then once in the mapping: 
+ind_duplicated <- duplicated(bitr_EnsToEntr$ENTREZID)
+
+# filter the list of all Entrez IDs to the duplicated ones 
+dupl_entrez<-unique(bitr_EnsToEntr$ENTREZID[ind_duplicated])
+```
+
+We now want have a look the mapping pattern causing the duplicated Entrez IDs.
+```{r}
+# filter the mapping to those Entrez IDs appearing repeatedly
+duplicated_conversion_entrez<-bitr_EnsToEntr[bitr_EnsToEntr$ENTREZID %in% dupl_entrez,]
+
+# for illustration purposed: order by the column containing the Entrez IDs 
+duplicated_conversion_entrez <- duplicated_conversion_entrez[order(duplicated_conversion_entrez$ENTREZID), ]
+
+
+# take a look at conversion pattern: 
+head(duplicated_conversion_entrez, n = 6 )
+```
+
+In the following, we propose three ways to remove these duplicates. 
+
+
+## Step 4: Remove duplicated gene IDs
+
+For the subsequent analysis (whether differential expression analysis or gene set analysis), we need to deal with the duplicated gene IDs and remove them in a suitable way such that only one unique gene expression measurement among the duplicates remains. There is no recommended way to proceed, i.e. no common approach presented in an official scientific publications, but instead several approaches suggested by users in corresponding user platforms. We therefore introduce three approaches to remove the duplicated gene IDs. 
+
+
+### option 1: Keep the first subscript among the duplicates (simplest approach)
+  
+Note that function duplicated() indicates which elements of a vector are duplicates of an element with smaller subscripts. Therefore, the first corresponding element that occurs is not considered a subscript. 
+
+
+**1. Remove duplicated ENTREZ IDs**
+```{r}
+# indicate which Entrez IDs are duplicates of one with a smaller subscript 
+ind_duplicates <- duplicated(merged_expression_data_filterByExpr$ENTREZID)
+
+# filter the gene expression data set to those Entrez IDs that are NO duplicates
+exprdat_filterByExpr_dupl1 <- merged_expression_data_filterByExpr[!ind_duplicates,]
+
+```
+
+**2. Remove duplicated ENSEMBL IDs**
+```{r}
+# indicate which Ensembl IDs are duplicates of one with a smaller subscript
+ind_duplicates <- duplicated(exprdat_filterByExpr_dupl1$Row.names)
+
+# filter the gene expression data set to those Ensembl IDs that are NO duplicates
+exprdat_filterByExpr_dupl1<-exprdat_filterByExpr_dupl1[!ind_duplicates,]
+```
+
+**3. Set NCBI (Entrez) IDs as rownames**
+```{r}
+rownames(exprdat_filterByExpr_dupl1)<-exprdat_filterByExpr_dupl1$ENTREZID
+
+#Remove columns containing ENSEMBL and ENTREZ IDs
+exprdat_filterByExpr_dupl1 <- subset(exprdat_filterByExpr_dupl1, select=-c(Row.names,ENTREZID))
+
+# inspect dimension of gene expression data set without duplicates 
+dim(exprdat_filterByExpr_dupl1)
+```
+
+### option 2: Keep the (rounded) mean expression value of all duplicated gene IDs 
+
+In this option, we want to combine the corresponding duplicated gene IDs into one by taking the (rounded) mean count value for each sample. Here, we switch the order in which we remove the duplicates by first addressing duplicated Ensembl IDs and then duplicated Entrez IDs. 
+
+**1.Remove duplicated ENTREZ IDs**
+
+**Remove the multiple different ENSEMBL IDs that are mapped to the same single ENTREZ ID (case 2)**
+```{r}
+# generate empty matrix to contain (rounded) mean expression values of all rows that
+# have same ENTREZ ID
+mean_entrez<-matrix(, nrow=0, ncol=ncol(merged_expression_data_filterByExpr)-2)
+# note: we set ncol = ncol(expression_data_filterByExpr)-2 since data set contains 2 columns with IDs at this point for which 
+# we won't calculate any mean value. 
+
+
+# for each duplicated Entrez ID separately, we gather all rows with the corresponding gene expression data
+# and then extract the (rounded) mean expression value of all rows
+    for(i in 1:length(dupl_entrez)){
+
+#go through each ENTREZ IDs which occurs multiple times
+#determine all rows whose ENTREZ IDs correspond to currently considered ENTREZ ID
+counts_dupl <- merged_expression_data_filterByExpr[merged_expression_data_filterByExpr$ENTREZID %in% unique(dupl_entrez)[i],]
+
+#compute the mean expression value of all rows that correspond to the given Entrez ID
+dupl_id <- round(colMeans(counts_dupl[,c(2:(ncol(merged_expression_data_filterByExpr)-1))]))
+
+#store rounded mean expression value in matrix
+# this matrix is iteratively extended by a single row of gene expression data which corresponds to the
+# (rounded) mean expression data that corresponds to the given Entrez ID
+mean_entrez <- rbind(mean_entrez,dupl_id)
+      
+}
+
+#set corresponding ENTREZ IDs as rownames
+rownames(mean_entrez) <- unique(dupl_entrez)
+
+
+# test whether the number of rows in mean_entrez corresponds to the number ENTREZ IDs
+# that occur more than once
+# result should be TRUE
+nrow(mean_entrez) == length(dupl_entrez)
+
+# remove all rows from the expression data whose ENTREZ ID has at least one duplicate
+# intuition: we have just dealt with the corresponding rows and do not want them to be considered
+# in the second step (which deals with case 2)
+
+exprdat_filterByExpr_dupl2 <- merged_expression_data_filterByExpr[!merged_expression_data_filterByExpr$ENTREZID %in%  dupl_entrez,]
+
+# test whether the number of rows in the resulting data set equals the number of rows in the initial gene expression data set 
+# minus number of genes with at least one duplicate
+nrow(exprdat_filterByExpr_dupl2) == nrow(merged_expression_data_filterByExpr)-nrow(duplicated_conversion_entrez)
+
+
+# Inspect the dimension of the resulting gene expression data set with converted gene IDs
+dim(exprdat_filterByExpr_dupl2)
+
+```
+Note that we will add the mean values to the gene expression data set at the end of step 2. 
+
+**2. Remove duplicated ENSEMBL IDs**
+
+- Caution: Single ENSEMBL IDs that are mapped to multiple ENTREZ ID naturally generate identical count data for all corresponding ENTREZ IDs
+- It is therefore pointless to compute the mean expression values
+- We therefore proceed as in option 1 and use ENTREZ ID that occurs first and remove the rest
+
+```{r}
+# indicate which Ensembl IDs are duplicated in the gene expression data set
+ind_duplicates <- duplicated(exprdat_filterByExpr_dupl2$Row.names)
+
+# filter gene expression data set to all Ensembl IDs that are NOT duplicated 
+exprdat_filterByExpr_dupl2 <- exprdat_filterByExpr_dupl2[!ind_duplicates,]
+
+
+
+```
+
+**3. Set NCBI (Entrez) IDs as rownames**
+```{r}
+# set ENTREZ IDs as rownames
+rownames(exprdat_filterByExpr_dupl2) <- exprdat_filterByExpr_dupl2$ENTREZID
+
+# remove any columns containing IDs
+exprdat_filterByExpr_dupl2 <- subset(exprdat_filterByExpr_dupl2,select= -c(Row.names,ENTREZID))
+    
+# add rows to data set that contain mean expression values of duplicate ENTREZ IDs (from step 2)
+exprdat_filterByExpr_dupl2 <- rbind(exprdat_filterByExpr_dupl2,mean_entrez)
+    
+# Inspect the dimension of the resulting gene expression data set with converted gene IDs
+dim(exprdat_filterByExpr_dupl2)
+```
+
+
+
+### option 3: Among the duplicates, keep row with highest overall expression values 
+
+In this option, we summarize the gene expression data from the corresponding duplicated gene IDs by detecting the row with the highest counts across all samples. The intuition behind this approach is that the row with the highest counts values has the highest statistical power of being detected as differentially expressed. As in option 2, this is only sensible for duplicates that result from multiple ENSEMBL IDs being mapped to the same ENTREZ ID. 
+
+**1. Remove duplicated Entrez IDs**
+```{r}
+ # generate empty matrix to later contain row with highest count values among ID duplicates
+# this data set is to be filled gradually and with each iteration of the follwing for-loop
+highest_count_entrez<-matrix(, nrow=0, ncol=ncol(merged_expression_data_filterByExpr)-2)
+# note: we set ncol = ncol(expression_data_filterByExpr)-2 since data set contains 2 columns with IDs at this point for which 
+# we won't calculate any "highest" value. 
+
+
+# for each duplicated Entrez ID separately, we gather all rows with the corresponding gene expression data
+# and then extract the row with the highest overall magnitude of counts
+
+for(i in 1:length(dupl_entrez)){
+
+# go through each ENTREZ IDs which occurs multiple times
+# determine all rows whose ENTREZ IDs correspond to currently considered ENTREZ ID
+counts_dupl<-merged_expression_data_filterByExpr[merged_expression_data_filterByExpr$ENTREZID %in% unique(dupl_entrez)[i],]
+
+# order rows in decreasing manner by their (added up) number of read counts across all samples
+order_rowsums<-order(rowSums(counts_dupl[,2:(ncol(counts_dupl)-1)]),decreasing=TRUE)
+        
+#detect row with highest number of read counts across all samples (i.e. row with rank 1)
+dupl_id<-counts_dupl[order_rowsums==1,]
+#store corresponding expression values in the matrix 
+highest_count_entrez<-rbind(highest_count_entrez,dupl_id)
+      }
+
+
+#Remove all initial values with ENTREZ duplicates from the initial gene expression data set
+exprdat_filterByExpr_dupl3<-merged_expression_data_filterByExpr[! merged_expression_data_filterByExpr$ENTREZID %in% unique(dupl_entrez),]
+```
+
+**2. Remove duplicated Ensembl IDs**
+
+Just like in option 2, it is pointless to detect the row with the highest count values as all rows corresponding to the same ENSEMBL ID naturally contain identical count data. We therefore keep the row corresponding to a duplicatd ENSEMBL ID that occurs first. 
+
+
+```{r}
+# indicate duplicated Ensembl IDs 
+ind_duplicates <- duplicated(exprdat_filterByExpr_dupl3$Row.names)
+
+# filter the gene expression data set to those Ensembl IDs that are NOT duplicated 
+exprdat_filterByExpr_dupl3<-exprdat_filterByExpr_dupl3[!ind_duplicates,]
+
+# add gene expression rows of all Entrez IDs that were initially duplicated
+exprdat_filterByExpr_dupl3<-rbind(exprdat_filterByExpr_dupl3, highest_count_entrez)
+```
+
+**3. Set NCBI (Entrez) IDs as rownames**
+
+```{r}
+# Set ENTREZ IDs as rownames
+rownames(exprdat_filterByExpr_dupl3)<-exprdat_filterByExpr_dupl3$ENTREZID
+
+# Remove any column that contains information on gene IDs
+exprdat_filterByExpr_dupl3<-subset(exprdat_filterByExpr_dupl3, select=-c(Row.names,ENTREZID))
+
+# Inspect the dimension of the resulting gene expression data set with converted gene IDs
+dim(exprdat_filterByExpr_dupl3)
+```
+
+
+
+## Summary
+
+We have demonstrated how to convert the gene IDs of a gene expression data set from the Ensembl to the NCBI (Entrez) ID format, followed by three approaches to remove duplications in the gene IDs resulting from the conversion. Since there is, as already mentioned, no common approach to the removal of duplicated gene IDs, the user is left with the choice between the gene expression data sets 
+
+```{r, eval = FALSE}
+exprdat_filterByExpr_dupl1
+exprdat_filterByExpr_dupl2
+exprdat_filterByExpr_dupl3
+```
+

@@ -1,0 +1,214 @@
+
+# clusterProfiler's ORA
+
+
+ In this script, we will 
+ 
+ 1. run clusterProfiler's ORA tool based on the results table of differential expression analysis for the gene set databases 
+ 
+ - KEGG 
+ 
+ - GO (with default subontology "MF")
+ 
+2. go through all meaningful researchers' degrees of freedom 
+
+Note that clusterProfiler's ORA accepts the gene IDs in the NCBI (Entrez) ID format, independent of the chosen gene set database.
+
+
+## Libraries 
+
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.
+
+```{r, eval = FALSE}
+install.packages("BiocManager")
+BiocManager::install("clusterProfiler")
+BiocManager::install("org.Hs.eg.db")
+```
+
+**Load Libraries**
+```{r, message = FALSE}
+library(clusterProfiler)
+library(org.Hs.eg.db)
+```
+
+Description of the packages 
+
+- **clusterProfiler**: We here use clusterProfiler's implementation of ORA. 
+
+- **org.Hs.eg.db**: Provides genome-wide annotation for humans. When working with a different organism,  the user has to provide a different package (see Chapter 1 'About'). Note that this library is required when running clusterProfiler's ORA with gene set database GO.
+
+## Load data 
+
+```{r}
+load("./data/Results_Differential_Expression_Analysis/DE_results_limma_Entrez.Rdata")
+load("./data/Results_Differential_Expression_Analysis/DE_results_DESeq2_Entrez.Rdata")
+load("./data/Results_Differential_Expression_Analysis/DE_results_edgeR_Entrez.Rdata")
+```
+
+We arbitrarily set the object DE_results we will work with resulting from DESeq2. However, you can switch around at your discretion. 
+
+```{r}
+DE_results <- DE_results_DESeq2_Entrez
+
+# alternatively: 
+#DE_results <- DE_results_limma_Entrez
+#DE_results <- DE_results_edgeR_Entrez
+```
+
+## Run clusterProfiler's ORA 
+
+### step 1: Preparation of required input object 
+
+clusterProfiler's ORA requires as input a list of differentially expressed genes. We extract such list from the results table of differential expression analysis. \
+For each gene from the results of differential expression analysis, we indicate whether it is differentially expressed (TRUE) or not differentially expressed (FALSE) based on the following two criteria: 
+
+1.  it was tested for differential expression, i.e. has a non-missing adjusted p-value AND
+
+2.  it has an adjusted p-value < 0.05
+
+```{r}
+# indicate which gene fulfills BOTH criteria: 
+ind_differentially_expressed <- ((!is.na(DE_results$p_adj)) & (DE_results$p_adj<0.05))
+
+# using this indicator, we extract the vector of differentially expressed genes from the results
+# of differential expression analysis 
+DEG_vec <- rownames(DE_results[ind_differentially_expressed,])
+```
+
+inspect the first few genes from the input list of differentially expressed genes 
+```{r}
+head(DEG_vec, n = 10)
+```
+
+### step 2: Run clusterProfiler's ORA 
+
+ORA can be run with the common geneset databases KEGG and GO as well as user-defined gene set databases. Here, we focus on the two common gene set databases GO and KEGG. 
+
+#### option 1: gene set database GO
+Here, we work the the subontology specified by default, namely Molecular Function ("MF")
+
+```{r}
+ORA_results_GO <- enrichGO(gene = DEG_vec, 
+                           OrgDb = org.Hs.eg.db, 
+                           ont = "MF") 
+
+```
+
+Inspect the results table 
+```{r}
+head(ORA_results_GO , n = 10)
+```
+
+
+Function arguments: 
+
+- **gene**: vector of differentially expressed genes 
+
+- **OrgDb**: annotation package for organism at hand (here: human)
+
+- **ont**: subontology ("MF" by default, alternatives: "BP" and "CC")
+
+
+#### option 2: gene set database KEGG 
+
+```{r}
+ORA_results_KEGG <- enrichKEGG(gene = DEG_vec, 
+                               organism = "hsa")
+
+# inspect results table 
+head(ORA_results_KEGG , n = 10)
+```
+ Function arguments: 
+ 
+- **gene**: vector of differentially expressed genes 
+
+- **organism**: organism from which gene expression measurements are obtained
+
+  + by default, it is set 'organism = "hsa"'.
+ 
+  + must be adapted for other organisms (such as organism = "mmu" for mice)
+
+
+
+### step 4: Interpretation of the results
+
+Description of columns in results table: 
+
+- **GeneRatio**: number of genes from the input list that are members of the given gene set divided by the number of genes from the input list that are NOT members of the given gene set 
+
+- **BgRatio**: number of genes from the universe that are members of the gene set divided by the total number of genes in the universe 
+
+- **pvalue**: p-value of enrichment of the given gene set 
+
+- **p.adjust**: p-value of enrichment ADJUSTED for multiple testing 
+
+- **qvalue**: p-value of enrichment ADJUSTED for multiple testing 
+ 
+  + note: p.adjust and qvalue are adjusted using slightly different approaches 
+
+- **geneID**: list of genes from the input list that are members of the given gene set 
+ 
+- **count**: number of genes from the input list that are members of the given gene set 
+
+
+
+## Researchers' degrees of freedom 
+
+In this part, we will go through all parameters that can be adapted in the GOSeq workflow. It is important to note that the intention behind going through the researchers' degrees of freedom is to give you an understanding of what you can do to adapt the given (parameter) setting to the research question. It is even more important to keep in mind that the intention behind going through these flexible parameters is NOT to change them in order to help you obtain the most preferable results by systematically changing these parameters since such behaviour would correspond to "cherry-picking". Any changes in the parameter choice must be documented transparently. 
+
+### change 1: Change universe 
+
+Here, we change the universe to all genes measured in the experiment.
+
+Note that we do not change the universe to the interception between all genes from the experiment and the list of genes annotated to the given gene set database since we found no way to obtain the latter list of genes. \
+Also note that we want to restrict ourselves to all genes in the experiment that HAVE an adjusted p-value (i.e. whose expression was indeed measured). The intuition is that, e.g. for DESeq2, some genes are filtered out internally and 
+therefore do not have an adjusted p-value. These genes therefore neither be detected as differentially expressed or not differentially expressed so it would not be feasible to include them in the universe. 
+
+**Step 1: Set up alternative universe**
+
+```{r}
+# (i) indicate which genes have an adjusted p-value
+ind_adjp <- !is.na(DE_results$p_adj)
+
+# (ii) filter the genes from the experiment to those genes that do have an adjusted p-value 
+alternative_universe <- rownames(DE_results)[ind_adjp]
+
+# inspect the first few genes in the universe
+head(alternative_universe, n = 10)
+```
+
+**Step 2: Add alternative universe as a parameter to ORA**
+
+In both functions *enrichGO()* and *enrichKEGG()*, an alternative universe can be specified in argument **universe**.
+
+**(a) gene set database GO: specify parameter universe**
+
+```{r}
+ORA_results_GO_universe  <- enrichGO(gene = DEG_vec, 
+                                     OrgDb = org.Hs.eg.db, 
+                                     universe = alternative_universe)
+```
+
+Inspect the results table:
+```{r}
+head(ORA_results_GO_universe, n = 10)
+```
+
+
+
+
+**(b) gene set database KEGG: specify parameter universe**
+
+```{r}
+ORA_results_KEGG_universe <- enrichKEGG(gene = DEG_vec, 
+                                        organism = "hsa",
+                                        universe = alternative_universe)
+```
+
+Inspect the results table:
+```{r}
+head(ORA_results_KEGG_universe, n = 10)
+```
+
+
+

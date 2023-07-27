@@ -1,0 +1,203 @@
+
+# Transformation of the RNA-Seq data
+
+
+In this file, we will transform the RNA-Seq data to align its characteristics with those of microarray measurements using two approaches: \
+
+ - **approach 1**: transformation using voom 
+ - **approach 2**: transformation using DESeq2's varianceStabilizingTransformation
+ 
+ 
+Note that PADOG and web-based tool GSEA, which are the two tools in this paper that require a (manual) transformation of the RNA-Seq data, require the genes in a different format: 
+
+- **PADOG**: NCBI (Entrez) ID. Therefore requires the gene expression data with converted gene IDs
+- **GSEA**: ENSEMBL ID. Therefore requires gene expression data with initial gene IDs 
+
+We here illustrate the procedure for both transformation methods for **Entrez ID**, while the identical procedure for ENSEMBL ID is provided in the corresponding the R file 'Instructions_RNASeq_Transformation.R'.
+
+ 
+## Libraries 
+
+All necessary packages are available on Bioconductor, and should be installed from there if not already available on your machine.
+
+```{r, eval = FALSE}
+install.packages("BiocManager")
+BiocManager::install("tweeDEseqCountData")
+BiocManager::install("limma")
+BiocManager::install("edgeR")
+BiocManager::install("DESeq2")
+```
+
+**Load libraries**
+```{r, message = FALSE, warning = FALSE}
+library(tweeDEseqCountData) 
+library(limma)
+library(edgeR)
+library(DESeq2)
+```
+
+Description of the libraries: 
+
+- **tweeDEseqCountData**: Both methods for the transformation of the RNA-Seq data require the conditions of the samples of the gene expression data set which, in the case of the Pickrell data set, we obtain from the library tweeDEseqCountData. 
+
+- **limma**: Since the first method for the transformation of the RNA-Seq data is based on limma's voom, we have to load the corresponding library. 
+
+- **edgeR**: Normalization is an additional component of the transformation of the RNA-Seq data and the first method employs (by default) a normalization technique provided by the edgeR library. 
+
+- **DESeq2**: Since the second method for the transformation of the RNA-Seq data is provided by DESeq2, we have to load the corresponding library. 
+
+
+#### Load data 
+
+We load the pre-filtered gene expression data sets with the genes identified in the initial NCBI (Entrez) ID format. Note that for the purpose of simplicity, we here assume that the gene expression measurements have been filtered using the simple approach to pre-filtering introduced by DESeq2. 
+
+```{r}
+
+load("./data/Results_GeneID_Conversion_DuplicatesRemoval/exprdat_filter_conv_DESeq2.Rdata")
+
+# for GSEA, we would load the pre-filtered RNA-Seq data with the genes identified in the ENSEMBL ID format 
+#load("./data/Results_PreFiltering/expression_data_filterDESeq2.Rdata")
+```
+
+To obtain the sample conditions of the pickrell data set (which are the respective genders), we also have to load the data. 
+
+```{r}
+# load pickrell data 
+data(pickrell)
+
+# assign the conditions of the samples to object "sample_conditions"
+sample_conditions <- pickrell.eset$gender
+```
+
+
+
+For the purpose of readability, we will assign the gene expression data set the more neutral name "expression_data_filt_conv".
+```{r}
+# gene expression data set with gene IDs converted to Entrez ID format: 
+expression_data_filt_conv <- exprdat_filter_conv_DESeq2
+```
+
+
+## Transformation of the gene expression data set with converted (Entrez) IDs 
+
+
+### Approach 1: Transformation using voom 
+
+
+**Step 1: Generate a DGEList object from the gene expression data**
+
+```{r}
+counts_voom <-DGEList(counts = expression_data_filt_conv, 
+                      group = sample_conditions)
+```
+
+Function arguments: 
+
+- **counts**: corresponds the gene expression measurements 
+
+- **group**: corresponds to the conditions of the samples 
+
+**Step 2: Normalization**
+
+Note that we here use the default normalization method TMM ("Trimmed mean of M-values") [@robinson2010scaling]. Other choices for normalization can be specified in the argument "method" in function *calcNormFactors()*. 
+
+```{r}
+counts_voom <- calcNormFactors(counts_voom)
+```
+
+**Step 3: Run voom** 
+
+Note that we do NOT make use of the precision weights that are an official part of voom. Instead, we only proceed with the cpm-transformed (and normalized) gene expression measurements. 
+
+```{r}
+expression_data_voomtransformed <- voom(counts_voom)
+```
+
+
+**Step 4: Convert resulting data set to data frame**
+
+At this point, the transformed gene expression measurements are stored in the object "expression_data_voomtransformed" in the form of an EList object. For the further use in GSA (here specifically: PADOG), we want to convert the transformed gene expression measurements to a data frame. 
+
+```{r}
+expression_data_voomtransformed_Entrez <- as.data.frame(expression_data_voomtransformed)
+```
+
+Inspect the first few entries of the transformed RNA-Seq data set.
+```{r}
+expression_data_voomtransformed_Entrez[1:10, 1:5]
+```
+
+### Approach 2: Transformation using DESeq2's VarianceStabilizingTransformation [@love2014moderated]
+
+**Step 1: generate a data frame to contain the condition of each sample**
+
+Just like the starting point of differential expression analysis, we here need to generate the input object(s) required when working with DESeq2.  Here, we generate the data frame colnames which contains for each sample (rownames) the corresponding condition (in the form of "treated" vs. "untreated").
+
+```{r}
+# the names of the samples are stored as the row names of the data frame
+# -> important: make sure that the order of the conditions in sample_conditions corresponds to the order of the samples in expression_data
+  coldata <- data.frame(sample_conditions, 
+                        row.names = colnames(expression_data_filt_conv))
+  
+# rename the column header to "condition" 
+colnames(coldata) <- "condition"
+  
+# recode the variable condition as a factor 
+# rename the sample conditions (in this case from "female" and "male") to "untreated" and "treated"
+# note: make sure that the control level in variable condition is coded as the first level (i.e. "untreated")
+coldata$condition <- factor(coldata$condition, 
+                            labels = c("untreated","treated"))
+
+# inspect resulting data frame: 
+head(coldata, n = 10)
+```
+
+**Step 2: Generate DESeqDataSet**
+
+DESeq2 eventually operates on a "DESeqDataSet", which contains the gene expression measurements, the information on the samples (here: the sample conditions) as well as the indication on which variables the count data of each sample depend on. 
+
+```{r}
+dds<-DESeqDataSetFromMatrix(countData = expression_data_filt_conv, 
+                            colData = coldata, 
+                            design = ~ condition)
+```
+
+Relevant arguments in function DESeqDataSetFromMatrix:
+
+- **countData**: count data from the gene expression data set
+
+- **colData**: data frame that contains information on the samples (see above) such as the conditions of the samples (required) and possibly further variables to correct for (such as batch effects)
+
+- **design**: indicates which variables from colData are used for modelling
+  + more detailed: the argument design is used to estimate the dispersions and the log2 fold changes of the model 
+  + if more than one variable from colData are used in argument design (e.g. a second variable "batch"), the syntax changes to the following formula: "design ~ batch + condition" 
+  
+Here, we disregard any possible batch effects and focus on the conditions of the samples. 
+
+**Step 3: Perform DESeq2's varianceStabilizingTransformation**
+
+This transformation results in values with a variance approximately that is approximately constant throughout the range of the mean. Furthermore, the values are normalized for library size.  
+
+
+```{r}
+# perform variance stabilizing transformation
+expression_data_vsttransformed <-vst(dds)
+    
+# since the data set is now in the format of a DESeqTransform data set, the transformed count data are not directly accessible use function assay() which lets us access the count data:
+expression_data_vsttransformed <- assay(expression_data_vsttransformed)
+```
+
+**Step 4: Convert to data frame**
+  
+We convert the transformed gene expression data set to a data frame. 
+
+```{r}
+expression_data_vsttransformed_Entrez <- as.data.frame(expression_data_vsttransformed)
+```
+
+Inspect the first few entries of the transformed gene expression data set 
+```{r}
+expression_data_vsttransformed_Entrez[1:10, 1:5]
+```
+
+
