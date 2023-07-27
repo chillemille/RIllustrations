@@ -1,6 +1,9 @@
 
 # Differential expression analysis
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
 In this script, we will perform differential expression analysis for each of the three parametric methods: 
 

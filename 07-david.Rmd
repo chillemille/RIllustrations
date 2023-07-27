@@ -1,6 +1,9 @@
 
 # DAVID
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
 In this script, we will
 

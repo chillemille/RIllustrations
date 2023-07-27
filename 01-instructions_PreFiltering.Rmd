@@ -1,6 +1,10 @@
 
 # (PART) Common Processing Steps {-}
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 # Pre-filtering
 
 

@@ -1,6 +1,10 @@
 
 # PADOG
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 In this script, we will go through the process of running PADOG. Note that PADOG requires the transformed RNA-Seq data and the genes in the Entrez ID format.
 
 ## Libraries
@@ -34,7 +38,7 @@ Summary of the packages:
 
 ```{r}
 # we load the voom-transformed Pickrell data set 
-load("data/expression_data_voomtransformed_Entrez.Rdata")
+load("data/Results_RNASeq_Transformation/expression_data_voomtransformed_Entrez.Rdata")
 
 # alternatively: load the gene expression measurements that have been transformed using 
 # load("data/expression_data_vsttransformed_Entrez.Rdata")

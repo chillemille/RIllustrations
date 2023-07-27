@@ -1,6 +1,10 @@
 
 # GSEAPreranked
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 In this script, we will go through the process of preparing the required input for GSEAPreranked [@subramanian2005gene; @mootha2003pgc] (which is part of the web-based tool GSEA [@subramanian2005gene; @mootha2003pgc] ). \
 Note that in contrast to the remaining tools considered in this work, it is recom-
 mended for GSEAPreranked to provide the input with the genes ID as HGNC (HUGO) gene

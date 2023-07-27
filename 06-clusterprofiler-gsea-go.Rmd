@@ -1,6 +1,9 @@
 
 # clusterProfiler's GSEA (with gene set database GO)
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
 In this script, we will do the following two things: 
 
@@ -20,6 +23,7 @@ install.packages("BiocManager")
 BiocManager::install("clusterProfiler")
 BiocManager::install("org.Hs.eg.db")
 BiocManager::install("DESeq2")
+BiocManager::install("apeglm")
 ```
 
 **Load Libraries **

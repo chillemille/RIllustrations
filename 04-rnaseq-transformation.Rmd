@@ -1,6 +1,9 @@
 
 # Transformation of the RNA-Seq data
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
 In this file, we will transform the RNA-Seq data to align its characteristics with those of microarray measurements using two approaches: \
 

@@ -1,8 +1,12 @@
 
 # (PART) No Gene ID Conversion {-}
 
+
 # GOSeq
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
 ## Content of this script 
 

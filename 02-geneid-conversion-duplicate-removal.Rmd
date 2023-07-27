@@ -1,6 +1,9 @@
 
 # Gene ID conversion and removal of the resulting duplicated gene IDs
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
 In this script, we will go through the process of 
 
