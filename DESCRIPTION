@@ -1,10 +1,11 @@
 Package: RIllustrations
-Title: What the Package Does (One Line, Title Case)
+Title: A practical guide to navigating the choices and uncertainties of gene set analysis
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Milena", "Wünsch", , "milena.wuensch@ibe.med.uni-muenchen.de", role = c("aut")),
+    person("Pat", "Callahan", , "patricktcallahan18@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-1769-7580"))
+Description: Allows for easy distribution of the code underlying the publicly-available bookdown website.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
